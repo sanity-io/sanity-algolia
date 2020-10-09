@@ -1,4 +1,4 @@
-import { flattenBlocks } from '../src/util'
+import { flattenBlocks } from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 
 describe('flattenBlocks', () => {

@@ -1,4 +1,4 @@
-import { indexer } from '../src/index'
+import indexer from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 import { SearchIndex } from 'algoliasearch'
 

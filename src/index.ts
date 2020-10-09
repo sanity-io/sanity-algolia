@@ -1,12 +1,12 @@
 import { SearchIndex } from 'algoliasearch'
 import { getAllRecords } from './util'
 import { standardValues } from './util'
-
 import { SanityDocumentStub, SanityClient } from '@sanity/client'
-
 import { AlgoliaRecord, SerializeFunction, VisiblityFunction, WebhookBody } from './types'
 
-export const indexer = (
+export { flattenBlocks } from './util'
+
+const indexer = (
   types: string[],
   // Defines how the transformation from Sanity document to Algolia record is performed
   serializer: SerializeFunction,
@@ -86,3 +86,5 @@ export const indexer = (
 
   return { transform, webhookSync, reindex }
 }
+
+export default indexer
