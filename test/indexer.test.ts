@@ -2,9 +2,13 @@ import indexer from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 import { SearchIndex } from 'algoliasearch'
 
+const mockIndex = {} as SearchIndex
+
 describe('transform', () => {
   it('includes standard values for some standard properties', () => {
-    const algo = indexer(['internalFaq'], () => ({}))
+    const algo = indexer({
+      'internalFaq': mockIndex
+    }, () => ({}))
 
     const record = algo.transform([fixture])[0]
     expect(record.objectID).toEqual(fixture._id)
@@ -13,7 +17,7 @@ describe('transform', () => {
   })
 
   it('serialized according to passed function', () => {
-    const algo = indexer(['internalFaq'], (document) => {
+    const algo = indexer({ 'internalFaq': mockIndex }, (document) => {
       return {
         title: document.title,
         body: 'flattened body',
@@ -32,7 +36,7 @@ describe('transform', () => {
   });
 
   it('can override default values', () => {
-    const algo = indexer(['internalFaq'], (_document) => {
+    const algo = indexer({ 'internalFaq': mockIndex }, (_document) => {
       return {
         objectId: 'totally custom',
         type: 'invented',
@@ -50,15 +54,27 @@ describe('transform', () => {
 });
 
 describe('webhookSync', () => {
-  it('syncs the webhook payload', async () => {
-    const i = indexer(['post'], () => ({
-      title: 'Hello'
-    }), (document) => document._id !== 'ignore-me')
+  it('uses the correct index', async () => {
 
-    const index = {
+  })
+
+  it('syncs the webhook payload', async () => {
+    const postIndex = {
       saveObjects: jest.fn(),
       deleteObjects: jest.fn()
     }
+
+    const articleIndex = {
+      saveObjects: jest.fn(),
+      deleteObjects: jest.fn()
+    }
+
+    const i = indexer({
+      'post': (postIndex as unknown) as SearchIndex,
+      'article': (articleIndex as unknown) as SearchIndex
+    }, () => ({
+      title: 'Hello'
+    }), (document) => document._id !== 'ignore-me')
 
     const client = { fetch: jest.fn() }
 
@@ -67,6 +83,11 @@ describe('webhookSync', () => {
       {
         _id: 'create-me',
         _type: 'post',
+        _rev: '1'
+      },
+      {
+        _id: 'create-me-too',
+        _type: 'article',
         _rev: '1'
       },
       {
@@ -82,10 +103,10 @@ describe('webhookSync', () => {
     ])
 
     // @ts-ignore
-    await i.webhookSync(index as SearchIndex, client as SanityClient, {
+    await i.webhookSync(client as SanityClient, {
       ids: {
         updated: ['update-me', 'ignore-me'],
-        created: ['create-me'],
+        created: ['create-me', 'create-me-too'],
         deleted: ['delete-me']
       }
     })
@@ -94,21 +115,29 @@ describe('webhookSync', () => {
     // are interested in
     expect(client.fetch.mock.calls.length).toBe(1);
     expect(client.fetch.mock.calls[0][1]).toMatchObject({
-      created: ['create-me'],
+      created: ['create-me', 'create-me-too'],
       updated: ['update-me', 'ignore-me'],
-      types: ['post']
+      types: ['post', 'article']
     })
 
-    expect(index.saveObjects.mock.calls.length).toBe(1);
-    const savedIds = index.saveObjects.mock.calls[0][0].map((object: Record<string, any>) => object['objectID'])
-    expect(savedIds).toEqual(['create-me', 'update-me'])
+    expect(postIndex.saveObjects.mock.calls.length).toBe(1);
+    expect(articleIndex.saveObjects.mock.calls.length).toBe(1);
 
-    expect(index.deleteObjects.mock.calls.length).toBe(1);
-    const deletedIds = index.deleteObjects.mock.calls[0][0]
+    const savedPostIndexIds = postIndex.saveObjects.mock.calls[0][0].map((object: Record<string, any>) => object['objectID'])
+    expect(savedPostIndexIds).toEqual(['create-me', 'update-me'])
 
+    const savedArticleIndexIds = articleIndex.saveObjects.mock.calls[0][0].map((object: Record<string, any>) => object['objectID'])
+    expect(savedArticleIndexIds).toEqual(['create-me-too'])
+
+    expect(postIndex.deleteObjects.mock.calls.length).toBe(1);
+    expect(articleIndex.deleteObjects.mock.calls.length).toBe(1);
+
+    const deletedPostIndexIds = postIndex.deleteObjects.mock.calls[0][0]
+    const deletedArticleIndexIds = articleIndex.deleteObjects.mock.calls[0][0]
     // We expect that we asked Algolia to try to delete the delete-me document,
     // and also try to delete the ignore-me document, since it may have been
     // indexed before
-    expect(deletedIds).toEqual(['delete-me', 'ignore-me'])
+    expect(deletedPostIndexIds).toEqual(['delete-me', 'ignore-me'])
+    expect(deletedArticleIndexIds).toEqual(['delete-me', 'ignore-me'])
   })
 })
