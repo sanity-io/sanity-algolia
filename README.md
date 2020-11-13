@@ -4,7 +4,7 @@ Here are some helpers to facilitate serializing your Sanity documents into Algol
 
 ## Webhook example
 
-This is an example of syncing to Algolia directly from a [Sanity webhook](https://www.sanity.io/docs/webhooks). The example uses [Vercel Serverless Functions](https://vercel.com/docs/serverless-functions/introduction), but will be mostly the same for any serverless/lambda host. You can configure Sanity webhooks at [manage.sanity.io](https://manage.sanity.io) or via the `sanity hook` command from your Sanity Studio folder.
+This is an example of indexing Sanity content in Algolia directly from a [Sanity webhook](https://www.sanity.io/docs/webhooks) receiver. The receving function can be a serverless function running on Vercel, Netlify, Amazon etc. You can configure Sanity webhooks at [manage.sanity.io](https://manage.sanity.io) or via the `sanity hook` command from your Sanity Studio folder.
 
 ### Installing
 
