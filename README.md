@@ -105,6 +105,7 @@ export default handler
 
 - [ ] Use Algolia batch APIs?
 - [ ] Example of initial indexing of existing content
+- [ ] Handle situations where the record is too large to index.
 
 ## Links
 
