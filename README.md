@@ -26,8 +26,8 @@ const client = sanityClient({
  *  deletes records in the Algolia index.
  */
 const handler = async (req: NowRequest, res: NowResponse) => {
-  // Note: Its good practice to include a shared secret in your webhook URLs and
-  // validate it before proceeding with webhook handling.
+  // Tip: Its good practice to include a shared secret in your webhook URLs and
+  // validate it before proceeding with webhook handling. Omitted in this short example.
   if (req.headers['content-type'] !== 'application/json') {
     res.status(400);
     res.json({ message: 'Bad request' });
@@ -75,5 +75,5 @@ export default handler;
 
 ## Links
 
-[Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
-[Algolia indexing documentation](https://www.algolia.com/doc/api-client/methods/indexing/)
+* [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
+* [Algolia indexing documentation](https://www.algolia.com/doc/api-client/methods/indexing/)
