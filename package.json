@@ -14,7 +14,7 @@
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",
-    "lint": "tsdx lint",
+    "lint": "tsdx lint src test",
     "prepare": "tsdx build"
   },
   "peerDependencies": {},
@@ -23,12 +23,6 @@
       "pre-commit": "tsdx lint"
     }
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
   "name": "sanity-algolia",
   "author": "Rune Botten",
   "module": "dist/sanity-algolia.esm.js",
@@ -36,6 +30,7 @@
     "@types/jest": "^26.0.14",
     "@types/stopword": "^0.3.0",
     "husky": "^4.3.0",
+    "prettier": "^2.1.2",
     "tsdx": "^0.14.0",
     "tslib": "^2.0.2",
     "typescript": "^4.0.3"
