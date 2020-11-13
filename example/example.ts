@@ -1,12 +1,3 @@
-# Sanity + Algolia = ♥️
-
-Here are some helpers to facilitate serializing your Sanity documents into Algolia records, via custom serializing, optional hidden/visibility filtering and directly syncing to an Algolia index from a Sanity webhook endpoint.
-
-## Webhook example
-
-This is an example of syncing to Algolia directly from a Sanity webhook. The example uses Vercel serverless, but will be mostly the same for any serverless/lambda host.
-
-```typescript
 import algoliasearch from 'algoliasearch'
 import sanityClient, { SanityDocumentStub } from '@sanity/client'
 import { NowRequest, NowResponse } from '@vercel/node'
@@ -90,9 +81,3 @@ const handler = async (req: NowRequest, res: NowResponse) => {
 }
 
 export default handler
-```
-
-## Links
-
-- [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
-- [Algolia indexing documentation](https://www.algolia.com/doc/api-client/methods/indexing/)
