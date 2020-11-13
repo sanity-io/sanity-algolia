@@ -16,7 +16,9 @@ type IndexMap = {
 
 const indexer = (
   typeIndexMap: IndexMap,
-  // Defines how the transformation from Sanity document to Algolia record is performed
+  // Defines how the transformation from Sanity document to Algolia record is
+  // performed. Must return an AlgoliaRecord for every input. Inputs are only
+  // those Sanity document types declared as keys in `typeIndexMap`.
   serializer: SerializeFunction,
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
@@ -31,15 +33,13 @@ const indexer = (
     return records
   }
 
-  // Based on an Algolia index, a Sanity client and a Sanity webhook post body,
-  // sync the Sanity documents to Algolia records based on the types, serialize
-  // and visibilty rules
+  // Syncs the Sanity documents represented by the ids in the WebhookBody to
+  // Algolia via the `typeIndexMap` and `serializer`
   const webhookSync = async (client: SanityClient, body: WebhookBody) => {
     // Query Sanity for more information
     //
     // Fetch the full objects that we are probably going to index in Algolia. Some
-    // of these might get filtered out later depending on fields the documents
-    // might have set.
+    // of these might get filtered out later by the optional visibility function.
     const query = `* [(_id in $created + $updated) && _type in $types]`
     const { created, updated } = body.ids
     const docs: SanityDocumentStub[] = await client.fetch(query, {
