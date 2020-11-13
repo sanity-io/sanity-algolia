@@ -96,3 +96,4 @@ export default handler
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
 - [Algolia indexing documentation](https://www.algolia.com/doc/api-client/methods/indexing/)
+- [Vercel Serverless Functions documentation](https://vercel.com/docs/serverless-functions/introduction)
