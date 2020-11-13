@@ -6,11 +6,19 @@ Here are some helpers to facilitate serializing your Sanity documents into Algol
 
 This is an example of syncing to Algolia directly from a Sanity webhook. The example uses Vercel serverless, but will be mostly the same for any serverless/lambda host.
 
+### Installing
+
+```
+npm i sanity-algolia
+```
+
+### Use in your serverless function
+
 ```typescript
 import algoliasearch from 'algoliasearch'
 import sanityClient, { SanityDocumentStub } from '@sanity/client'
 import { NowRequest, NowResponse } from '@vercel/node'
-import indexer, { flattenBlocks } from '../src/index'
+import indexer, { flattenBlocks } from 'sanity-algolia'
 
 const algolia = algoliasearch('application-id', 'api-key')
 const client = sanityClient({
