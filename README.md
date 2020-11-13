@@ -101,6 +101,11 @@ const handler = async (req: NowRequest, res: NowResponse) => {
 export default handler
 ```
 
+## Todos
+
+- [ ] Use Algolia batch APIs?
+- [ ] Example of initial indexing of existing content
+
 ## Links
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
