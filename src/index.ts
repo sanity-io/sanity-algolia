@@ -1,7 +1,12 @@
 import { SearchIndex } from 'algoliasearch'
 import { standardValues } from './util'
 import { SanityDocumentStub, SanityClient } from '@sanity/client'
-import { AlgoliaRecord, SerializeFunction, VisiblityFunction, WebhookBody } from './types'
+import {
+  AlgoliaRecord,
+  SerializeFunction,
+  VisiblityFunction,
+  WebhookBody,
+} from './types'
 
 export { flattenBlocks } from './util'
 
@@ -15,12 +20,14 @@ const indexer = (
   serializer: SerializeFunction,
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
-  visible?: VisiblityFunction) => {
-
+  visible?: VisiblityFunction
+) => {
   const transform = (documents: SanityDocumentStub[]) => {
-    const records: AlgoliaRecord[] = documents.map((document: SanityDocumentStub) => {
-      return Object.assign(standardValues(document), serializer(document))
-    })
+    const records: AlgoliaRecord[] = documents.map(
+      (document: SanityDocumentStub) => {
+        return Object.assign(standardValues(document), serializer(document))
+      }
+    )
     return records
   }
 
@@ -38,7 +45,7 @@ const indexer = (
     const docs: SanityDocumentStub[] = await client.fetch(query, {
       created,
       updated,
-      types: Object.keys(typeIndexMap)
+      types: Object.keys(typeIndexMap),
     })
 
     // In the event that a field on a document was updated such that it is no
@@ -48,18 +55,20 @@ const indexer = (
     // that came in as created or updated. The resulting difference is added into
     // the delete operation further down.
     const allCreatedOrUpdated = created.concat(updated)
-    const visibleRecords = docs.filter(document => {
+    const visibleRecords = docs.filter((document) => {
       return visible ? visible(document) : true
     })
     const visibleIds = visibleRecords.map((doc: any) => doc._id)
-    const hiddenIds = allCreatedOrUpdated.filter((id: string) => !visibleIds.includes(id))
+    const hiddenIds = allCreatedOrUpdated.filter(
+      (id: string) => !visibleIds.includes(id)
+    )
 
     const recordsToSave = transform(visibleRecords)
 
     if (recordsToSave.length > 0) {
       for (const type in typeIndexMap) {
         await typeIndexMap[type].saveObjects(
-          recordsToSave.filter(r => r.type === type)
+          recordsToSave.filter((r) => r.type === type)
         )
       }
     }

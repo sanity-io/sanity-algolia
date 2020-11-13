@@ -9,20 +9,21 @@ export const standardValues = (doc: SanityDocumentStub) => {
   return {
     objectID: doc._id,
     type: doc._type,
-    rev: doc._rev
+    rev: doc._rev,
   }
 }
 
 // TODO: Probably want to support other languages besides English for the stopwords
 export const flattenBlocks = (
   blocks: Record<string, any>[],
-  removeStopWords = false) => {
+  removeStopWords = false
+) => {
   return [].concat
     .apply(
       [],
       blocks
-        .filter(i => i._type === 'block')
-        .map(b =>
+        .filter((i) => i._type === 'block')
+        .map((b) =>
           b.children
             .filter((c: Record<string, any>) => c.text.length > 0)
             .map((c: Record<string, any>) => {
@@ -63,7 +64,7 @@ export const getAllRecords = async (index: SearchIndex) => {
   let hits: AlgoliaRecord[] = []
   return index
     .browseObjects({
-      batch: objects => (hits = hits.concat(objects))
+      batch: (objects) => (hits = hits.concat(objects)),
     })
     .then(() => hits)
 }
