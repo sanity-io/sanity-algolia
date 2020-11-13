@@ -43,11 +43,12 @@ const handler = async (req: NowRequest, res: NowResponse) => {
     return
   }
 
+  // Configure this to match an existing Algolia index name
   const algoliaIndex = algolia.initIndex('my-index')
 
   const sanityAlgolia = indexer(
     // A mapping of Sanity document _type names and their respective Algolia
-    // indices
+    // indices. In this example both document types live in the same index.
     {
       post: algoliaIndex,
       article: algoliaIndex,
