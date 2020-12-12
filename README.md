@@ -1,6 +1,6 @@
 # Sanity + Algolia = ♥️
 
-Here are some helpers to facilitate serializing your Sanity documents into Algolia records, via custom serializing, optional hidden/visibility filtering and directly syncing to an Algolia index from a Sanity webhook endpoint.
+Here are some helpers to facilitate indexing your Sanity documents as Algolia records, via custom serializing, optional hidden/visibility filtering and directly syncing to an Algolia index from a Sanity webhook endpoint.
 
 ## Webhook example
 
