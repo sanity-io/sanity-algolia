@@ -34,7 +34,7 @@ const sanity = sanityClient({
  *  This function receives webhook POSTs from Sanity and updates, creates or
  *  deletes records in the corresponding Algolia indices.
  */
-const handler = async (req: NowRequest, res: NowResponse) => {
+const handler = (req: NowRequest, res: NowResponse) => {
   // Tip: Its good practice to include a shared secret in your webhook URLs and
   // validate it before proceeding with webhook handling. Omitted in this short
   // example.
