@@ -14,6 +14,8 @@ npm i sanity-algolia
 
 ### Use in your serverless function
 
+Typescript example. Note that your serverless hosting service might require a build step to properly deploy your serverless functions. Please refer to documentation on deploying functions at your service of choice.
+
 ```typescript
 import algoliasearch from "algoliasearch";
 import sanityClient, { SanityDocumentStub } from "@sanity/client";
