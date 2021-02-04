@@ -14,7 +14,7 @@ npm i sanity-algolia
 
 ### Use in your serverless function
 
-The following is a TypeScript example for Vercel. Note that your serverless hosting service might require a build step to properly deploy your serverless functions, and the signatures and passed parameters might differ from this example. Please refer to documentation on deploying functions at your hosting service of choice. The main bit of code will be the same for all platforms though.
+Note that your serverless hosting might require a build step to properly deploy your serverless functions, and that the exported handler and passed parameters might differ from the following example, which is TypeScript on Vercel. Please refer to documentation on deploying functions at your hosting service of choice in order to adapt it to your own needs.
 
 ```typescript
 import algoliasearch from "algoliasearch";
