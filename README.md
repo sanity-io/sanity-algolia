@@ -4,7 +4,7 @@ Here are some helpers to facilitate indexing your Sanity documents as Algolia re
 
 ## Webhook example
 
-This is an example of indexing Sanity content in Algolia directly from a [Sanity webhook](https://www.sanity.io/docs/webhooks) receiver. The target of the webhook can be a serverless function running on Vercel, Netlify, AWS etc. You can configure Sanity webhooks at [manage.sanity.io](https://manage.sanity.io) or via the `sanity hook` command from your Sanity Studio folder. With the example below you should configure your webhook to the URL of the serverless function once deployed.
+This is an example of indexing Sanity content in Algolia directly from a [Sanity webhook](https://www.sanity.io/docs/webhooks). The target of the webhook is a serverless function running on Vercel, Netlify, AWS etc. You can configure Sanity webhooks at [manage.sanity.io](https://manage.sanity.io) or via the `sanity hook` command from your Sanity Studio folder. You should configure your webhook to target the URL of the serverless function once deployed.
 
 ### Installing
 
