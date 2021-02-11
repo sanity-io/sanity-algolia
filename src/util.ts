@@ -4,6 +4,10 @@ import { SanityDocumentStub } from '@sanity/client'
 import { SearchIndex } from 'algoliasearch'
 import { AlgoliaRecord } from 'types'
 
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 // Properties that always should exist (only objectID is strictly needed from Algolia)
 export const standardValues = (doc: SanityDocumentStub) => {
   return {

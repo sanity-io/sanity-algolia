@@ -1,5 +1,5 @@
 import { SearchIndex } from 'algoliasearch'
-import { standardValues } from './util'
+import { standardValues, sleep } from './util'
 import { SanityDocumentStub, SanityClient } from '@sanity/client'
 import {
   AlgoliaRecord,
@@ -36,6 +36,10 @@ const indexer = (
   // Syncs the Sanity documents represented by the ids in the WebhookBody to
   // Algolia via the `typeIndexMap` and `serializer`
   const webhookSync = async (client: SanityClient, body: WebhookBody) => {
+    // Sleep a bit to make sure Sanity query engine is caught up to mutation
+    // changes we are responding to. This will not be required in the future.
+    await sleep(2000)
+
     // Query Sanity for more information
     //
     // Fetch the full objects that we are probably going to index in Algolia. Some
