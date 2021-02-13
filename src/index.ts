@@ -10,8 +10,26 @@ import {
 
 export { flattenBlocks } from './util'
 
+type TypeConfig = {
+  index: SearchIndex
+  projection?: string
+}
+
 type IndexMap = {
-  [key: string]: SearchIndex
+  [key: string]: TypeConfig
+}
+
+export const indexMapProjection = (indexMap: IndexMap): string => {
+  const types = Object.keys(indexMap)
+  const res = `{
+  _id,
+  _type,
+  _rev,
+  ${types
+    .map((t) => `_type == "${t}" => ${indexMap[t].projection || '{...}'}`)
+    .join(',\n  ')}
+}`
+  return res
 }
 
 const indexer = (
@@ -44,7 +62,9 @@ const indexer = (
     //
     // Fetch the full objects that we are probably going to index in Algolia. Some
     // of these might get filtered out later by the optional visibility function.
-    const query = `* [(_id in $created + $updated) && _type in $types]`
+    const query = `* [(_id in $created + $updated) && _type in $types] ${indexMapProjection(
+      typeIndexMap
+    )}`
     const { created, updated } = body.ids
     const docs: SanityDocumentStub[] = await client.fetch(query, {
       created,
@@ -71,7 +91,7 @@ const indexer = (
 
     if (recordsToSave.length > 0) {
       for (const type in typeIndexMap) {
-        await typeIndexMap[type].saveObjects(
+        await typeIndexMap[type].index.saveObjects(
           recordsToSave.filter((r) => r.type === type)
         )
       }
@@ -87,8 +107,8 @@ const indexer = (
     const recordsToDelete = deleted.concat(hiddenIds)
 
     if (recordsToDelete.length > 0) {
-      for await (const typeIndex of Object.values(typeIndexMap)) {
-        typeIndex.deleteObjects(recordsToDelete)
+      for await (const typeIndexConfig of Object.values(typeIndexMap)) {
+        typeIndexConfig.index.deleteObjects(recordsToDelete)
       }
     }
   }
