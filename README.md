@@ -17,20 +17,20 @@ npm i sanity-algolia
 Note that your serverless hosting might require a build step to properly deploy your serverless functions, and that the exported handler and passed parameters might differ from the following example, which is TypeScript on Vercel. Please refer to documentation on deploying functions at your hosting service of choice in order to adapt it to your own needs.
 
 ```typescript
-import algoliasearch from "algoliasearch";
-import sanityClient, { SanityDocumentStub } from "@sanity/client";
-import { NowRequest, NowResponse } from "@vercel/node";
-import indexer, { flattenBlocks } from "sanity-algolia";
+import algoliasearch from 'algoliasearch'
+import sanityClient, { SanityDocumentStub } from '@sanity/client'
+import { NowRequest, NowResponse } from '@vercel/node'
+import indexer, { flattenBlocks } from 'sanity-algolia'
 
-const algolia = algoliasearch("application-id", "api-key");
+const algolia = algoliasearch('application-id', 'api-key')
 const sanity = sanityClient({
-  projectId: "my-sanity-project-id",
-  dataset: "my-dataset-name",
+  projectId: 'my-sanity-project-id',
+  dataset: 'my-dataset-name',
   // If your dataset is private you need to add a read token.
   // You can mint one at https://manage.sanity.io
-  token: "read-token",
+  token: 'read-token',
   useCdn: false,
-});
+})
 
 /**
  *  This function receives webhook POSTs from Sanity and updates, creates or
@@ -40,57 +40,68 @@ const handler = (req: NowRequest, res: NowResponse) => {
   // Tip: Its good practice to include a shared secret in your webhook URLs and
   // validate it before proceeding with webhook handling. Omitted in this short
   // example.
-  if (req.headers["content-type"] !== "application/json") {
-    res.status(400);
-    res.json({ message: "Bad request" });
-    return;
+  if (req.headers['content-type'] !== 'application/json') {
+    res.status(400)
+    res.json({ message: 'Bad request' })
+    return
   }
 
   // Configure this to match an existing Algolia index name
-  const algoliaIndex = algolia.initIndex("my-index");
+  const algoliaIndex = algolia.initIndex('my-index')
 
   const sanityAlgolia = indexer(
-    // A mapping of Sanity document _type names and their respective Algolia
-    // indices. In this example both document types live in the same index.
+    // The first parameter maps a Sanity document type to its respective Algolia
+    // search index. In this example both `post` and `article` Sanity types live
+    // in the same Algolia index. Optionally you can also customize how the
+    // document is fetched from Sanity by specifying a GROQ projection.
     {
-      post: algoliaIndex,
-      article: algoliaIndex,
+      post: { index: algoliaIndex },
+      // For the article document in this example we want to resolve a list of
+      // references to authors. We can do this by customizing the projection for
+      // the article type. Here we fetch title, body and a resolved array of
+      // author documents.
+      article: {
+        index: algoliaIndex,
+        projection: '{title, body, authors[]->}',
+      },
     },
-    // Serialization function. This is how you go from a Sanity document to an
-    // Algolia record. Notice the flattenBlocks method used for extracting the
+
+    // The second parameter is a function that maps from a fetched Sanity document
+    // to an Algolia Record. Notice the flattenBlocks method used for extracting the
     // raw string values from portable text in this example.
     (document: SanityDocumentStub) => {
       switch (document._type) {
-        case "post":
+        case 'post':
           return {
             title: document.title,
             path: document.slug.current,
             body: flattenBlocks(document.body),
-          };
-        case "article":
+          }
+        case 'article':
           return {
             title: document.heading,
-            excerpt: flattenBlocks(document.excerpt),
             body: flattenBlocks(document.body),
-          };
+            authorNames: document.authors.map((a) => a.name),
+          }
         default:
-          throw new Error("You didnt handle a type you declared interest in");
+          throw new Error('You didnt handle a type you declared interest in')
       }
     },
     // Visibility function (optional).
     //
-    // Returning `true` for a given document here specifies that it should be
-    // indexed for search in Algolia. This is handy if for instance a field
-    // value on the document decides if it should be indexed or not. This would
-    // also be the place to implement any `publishedAt` datetime visibility
-    // rules or other custom scheme you may have set up.
+    // The third parameter is an optional visibility function. Returning `true`
+    // for a given document here specifies that it should be indexed for search
+    // in Algolia. This is handy if for instance a field value on the document
+    // decides if it should be indexed or not. This would also be the place to
+    // implement any `publishedAt` datetime visibility rules or other custom
+    // visibility scheme you may be using.
     (document: SanityDocumentStub) => {
-      if (document.hasOwnProperty("isHidden")) {
-        return !document.isHidden;
+      if (document.hasOwnProperty('isHidden')) {
+        return !document.isHidden
       }
-      return true;
+      return true
     }
-  );
+  )
 
   // Finally connect the Sanity webhook payload to Algolia indices via the
   // configured serializers and optional visibility function. `webhookSync` will
@@ -98,14 +109,15 @@ const handler = (req: NowRequest, res: NowResponse) => {
   // client and make sure the algolia indices are synced to match.
   return sanityAlgolia
     .webhookSync(sanity, req.body)
-    .then(() => res.status(200).send("ok"));
-};
+    .then(() => res.status(200).send('ok'))
+}
 
-export default handler;
+export default handler
 ```
 
 ## Todos
 
+- [x] Easily customize projections for resolving references
 - [ ] Use Algolia batch APIs?
 - [ ] Example of initial indexing of existing content
 - [ ] Handle situations where the record is too large to index.
@@ -114,5 +126,6 @@ export default handler;
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
 - [Algolia indexing documentation](https://www.algolia.com/doc/api-client/methods/indexing/)
+- [The GROQ Query language](https://www.sanity.io/docs/groq)
 - [Vercel Serverless Functions documentation](https://vercel.com/docs/serverless-functions/introduction)
 - [Netlify functions documentation](https://docs.netlify.com/functions/build-with-javascript/)

@@ -1,4 +1,4 @@
-import indexer from '../src/index'
+import indexer, { indexMapProjection } from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 import { SearchIndex } from 'algoliasearch'
 
@@ -8,7 +8,7 @@ describe('transform', () => {
   it('includes standard values for some standard properties', () => {
     const algo = indexer(
       {
-        internalFaq: mockIndex,
+        internalFaq: { index: mockIndex },
       },
       () => ({})
     )
@@ -20,7 +20,7 @@ describe('transform', () => {
   })
 
   it('serialized according to passed function', () => {
-    const algo = indexer({ internalFaq: mockIndex }, (document) => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
       return {
         title: document.title,
         body: 'flattened body',
@@ -39,7 +39,7 @@ describe('transform', () => {
   })
 
   it('can override default values', () => {
-    const algo = indexer({ internalFaq: mockIndex }, (_document) => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
       return {
         objectId: 'totally custom',
         type: 'invented',
@@ -53,6 +53,36 @@ describe('transform', () => {
       type: 'invented',
       rev: 'made up',
     })
+  })
+})
+
+describe('type index map', () => {
+  it('uses custom projection if specified for type', () => {
+    const postIndex = {
+      saveObjects: jest.fn(),
+      deleteObjects: jest.fn(),
+    }
+
+    const articleIndex = {
+      saveObjects: jest.fn(),
+      deleteObjects: jest.fn(),
+    }
+
+    const indexMap = {
+      post: { index: (postIndex as unknown) as SearchIndex },
+      article: {
+        index: (articleIndex as unknown) as SearchIndex,
+        projection: `{ authors[]-> }`,
+      },
+    }
+    const result = indexMapProjection(indexMap)
+    expect(result).toEqual(`{
+  _id,
+  _type,
+  _rev,
+  _type == "post" => {...},
+  _type == "article" => { authors[]-> }
+}`)
   })
 })
 
@@ -72,8 +102,11 @@ describe('webhookSync', () => {
 
     const i = indexer(
       {
-        post: (postIndex as unknown) as SearchIndex,
-        article: (articleIndex as unknown) as SearchIndex,
+        post: { index: (postIndex as unknown) as SearchIndex },
+        article: {
+          index: (articleIndex as unknown) as SearchIndex,
+          projection: '{"title": "Hardcode"}',
+        },
       },
       () => ({
         title: 'Hello',
@@ -119,6 +152,12 @@ describe('webhookSync', () => {
     // Check that we queried for the updated and created objects of the types we
     // are interested in
     expect(client.fetch.mock.calls.length).toBe(1)
+    // Check no custom projection (... fetches all fields)
+    expect(client.fetch.mock.calls[0][0]).toContain('_type == "post" => {...}')
+    // Check the custom projection
+    expect(client.fetch.mock.calls[0][0]).toContain(
+      '_type == "article" => {"title": "Hardcode"}'
+    )
     expect(client.fetch.mock.calls[0][1]).toMatchObject({
       created: ['create-me', 'create-me-too'],
       updated: ['update-me', 'ignore-me'],
