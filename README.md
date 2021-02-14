@@ -58,11 +58,11 @@ const handler = (req: NowRequest, res: NowResponse) => {
       post: { index: algoliaIndex },
       // For the article document in this example we want to resolve a list of
       // references to authors. We can do this by customizing the projection for
-      // the article type. Here we fetch title, body and a resolved array of
+      // the article type. Here we fetch heading, body and a resolved array of
       // author documents.
       article: {
         index: algoliaIndex,
-        projection: '{title, body, authors[]->}',
+        projection: '{heading, body, authors[]->}',
       },
     },
 
