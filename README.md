@@ -22,7 +22,7 @@ import sanityClient, { SanityDocumentStub } from '@sanity/client'
 import { NowRequest, NowResponse } from '@vercel/node'
 import indexer, { flattenBlocks } from 'sanity-algolia'
 
-const algolia = algoliasearch('application-id', 'api-key')
+const algolia = algoliasearch('application-id', process.env.ALGOLIA_ADMIN_API_KEY)
 const sanity = sanityClient({
   projectId: 'my-sanity-project-id',
   dataset: 'my-dataset-name',
