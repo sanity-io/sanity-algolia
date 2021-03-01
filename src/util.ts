@@ -29,7 +29,10 @@ export const flattenBlocks = (
         .filter((i) => i._type === 'block')
         .map((b) =>
           b.children
-            .filter((c: Record<string, any>) => c.text.length > 0)
+            .filter(
+              (c: Record<string, any>) =>
+                typeof c.text === 'string' && c.text.length > 0
+            )
             .map((c: Record<string, any>) => {
               if (removeStopWords) {
                 return sw.removeStopwords(c.text.split(' ')).join(' ')
