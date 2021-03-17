@@ -55,7 +55,7 @@ const indexer = (
   // Algolia via the `typeIndexMap` and `serializer`
   const webhookSync = async (client: SanityClient, body: WebhookBody) => {
     // Sleep a bit to make sure Sanity query engine is caught up to mutation
-    // changes we are responding to. This will not be required in the future.
+    // changes we are responding to.
     await sleep(2000)
 
     // Query Sanity for more information
