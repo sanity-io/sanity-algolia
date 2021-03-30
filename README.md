@@ -20,15 +20,19 @@ Note that your serverless hosting might require a build step to properly deploy 
 import algoliasearch from 'algoliasearch'
 import sanityClient, { SanityDocumentStub } from '@sanity/client'
 import { NowRequest, NowResponse } from '@vercel/node'
-import indexer, { flattenBlocks } from 'sanity-algolia'
+import indexer from 'sanity-algolia'
 
-const algolia = algoliasearch('application-id', process.env.ALGOLIA_ADMIN_API_KEY)
+const algolia = algoliasearch(
+  'application-id',
+  process.env.ALGOLIA_ADMIN_API_KEY
+)
 const sanity = sanityClient({
   projectId: 'my-sanity-project-id',
   dataset: 'my-dataset-name',
   // If your dataset is private you need to add a read token.
-  // You can mint one at https://manage.sanity.io
+  // You can mint one at https://manage.sanity.io,
   token: 'read-token',
+  apiVersion: '2021-03-25',
   useCdn: false,
 })
 
@@ -54,37 +58,50 @@ const handler = (req: NowRequest, res: NowResponse) => {
     // search index. In this example both `post` and `article` Sanity types live
     // in the same Algolia index. Optionally you can also customize how the
     // document is fetched from Sanity by specifying a GROQ projection.
+    //
+    // In this example we fetch the plain text from Portable Text rich text
+    // content via the pt::text function.
+    //
+    // _id and other system fields are handled automatically.
     {
-      post: { index: algoliaIndex },
+      post: {
+        index: algoliaIndex,
+        projection: `{
+          title,
+          "path": slug.current,
+          "body": pt::text(body)
+        }`,
+      },
       // For the article document in this example we want to resolve a list of
-      // references to authors. We can do this by customizing the projection for
-      // the article type. Here we fetch heading, body and a resolved array of
-      // author documents.
+      // references to authors and get their names as an array. We can do this
+      // directly in the GROQ query in the custom projection.
       article: {
         index: algoliaIndex,
-        projection: '{heading, body, authors[]->}',
+        projection: `{
+          heading,
+          "body": pt::text(body),
+          "authorNames": authors[]->name
+        }`,
       },
     },
 
     // The second parameter is a function that maps from a fetched Sanity document
-    // to an Algolia Record. Notice the flattenBlocks method used for extracting the
-    // raw string values from portable text in this example.
+    // to an Algolia Record. Here you can do further mutations to the data before
+    // it is sent to Algolia.
     (document: SanityDocumentStub) => {
       switch (document._type) {
         case 'post':
-          return {
-            title: document.title,
-            path: document.slug.current,
-            body: flattenBlocks(document.body),
-          }
+          return Object.assign({}, document, {
+            custom: 'An additional custom field for posts, perhaps?',
+          })
         case 'article':
           return {
             title: document.heading,
-            body: flattenBlocks(document.body),
-            authorNames: document.authors.map((a) => a.name),
+            body: document.body,
+            authorNames: document.authorNames,
           }
         default:
-          throw new Error('You didnt handle a type you declared interest in')
+          return document
       }
     },
     // Visibility function (optional).
