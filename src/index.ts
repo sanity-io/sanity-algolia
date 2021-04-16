@@ -62,7 +62,7 @@ const indexer = (
     //
     // Fetch the full objects that we are probably going to index in Algolia. Some
     // of these might get filtered out later by the optional visibility function.
-    const query = `* [(_id in $created + $updated) && _type in $types] ${indexMapProjection(
+    const query = `* [(_id in $created || _id in $updated) && _type in $types] ${indexMapProjection(
       typeIndexMap
     )}`
     const { created, updated } = body.ids
