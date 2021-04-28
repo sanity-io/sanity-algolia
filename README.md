@@ -132,13 +132,6 @@ const handler = (req: NowRequest, res: NowResponse) => {
 export default handler
 ```
 
-## Todos
-
-- [x] Easily customize projections for resolving references
-- [ ] Use Algolia batch APIs?
-- [ ] Example of initial indexing of existing content
-- [ ] Handle situations where the record is too large to index.
-
 ## Links
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
