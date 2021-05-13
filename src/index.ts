@@ -47,8 +47,8 @@ const indexer = (
       (document: SanityDocumentStub) => {
         const serializedDocs = serializer(document)
         if (Array.isArray(serializedDocs)) {
-          return serializedDocs.map((chunk, index) =>
-            Object.assign(standardValues(chunk, String(index)), chunk)
+          return serializedDocs.map((chunk) =>
+            Object.assign(standardValues(chunk), chunk)
           )
         } else {
           return Object.assign(standardValues(document), serializedDocs)
