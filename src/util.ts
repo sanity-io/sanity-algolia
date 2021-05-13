@@ -1,20 +1,17 @@
 // We do this locally just to trim the size of the records a bit
 import sw from 'stopword'
-import {SanityDocumentStub} from '@sanity/client'
-import {SearchIndex} from 'algoliasearch'
-import {AlgoliaRecord} from 'types'
+import { SanityDocumentStub } from '@sanity/client'
+import { SearchIndex } from 'algoliasearch'
+import { AlgoliaRecord } from 'types'
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // Properties that always should exist (only objectID is strictly needed from Algolia)
-export const standardValues = (
-  doc: SanityDocumentStub,
-  objectIdModifier?: string,
-) => {
+export const standardValues = (doc: SanityDocumentStub) => {
   return {
-    objectID: objectIdModifier ? `${doc._id}-${objectIdModifier}` : doc._id,
+    objectID: doc._id,
     type: doc._type,
     rev: doc._rev,
   }
@@ -23,7 +20,7 @@ export const standardValues = (
 // TODO: Probably want to support other languages besides English for the stopwords
 export const flattenBlocks = (
   blocks: Record<string, any>[],
-  removeStopWords = false,
+  removeStopWords = false
 ) => {
   return [].concat
     .apply(
@@ -34,15 +31,15 @@ export const flattenBlocks = (
           b.children
             .filter(
               (c: Record<string, any>) =>
-                typeof c.text === 'string' && c.text.length > 0,
+                typeof c.text === 'string' && c.text.length > 0
             )
             .map((c: Record<string, any>) => {
               if (removeStopWords) {
                 return sw.removeStopwords(c.text.split(' ')).join(' ')
               }
               return c.text
-            }),
-        ),
+            })
+        )
     )
     .join(' ')
 }
