@@ -1,6 +1,6 @@
-import indexer, { indexMapProjection } from '../src/index'
+import indexer, {indexMapProjection} from '../src/index'
 import fixture from './fixtures/internalFaq.json'
-import { SearchIndex } from 'algoliasearch'
+import {SearchIndex} from 'algoliasearch'
 
 const mockIndex = {} as SearchIndex
 
@@ -8,9 +8,9 @@ describe('transform', () => {
   it('includes standard values for some standard properties', () => {
     const algo = indexer(
       {
-        internalFaq: { index: mockIndex },
+        internalFaq: {index: mockIndex},
       },
-      () => ({})
+      () => ({}),
     )
 
     const record = algo.transform([fixture])[0]
@@ -20,7 +20,7 @@ describe('transform', () => {
   })
 
   it('serialized according to passed function', () => {
-    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
+    const algo = indexer({internalFaq: {index: mockIndex}}, (document) => {
       return {
         title: document.title,
         body: 'flattened body',
@@ -38,8 +38,57 @@ describe('transform', () => {
     })
   })
 
+  it('handles array returned from serializer', () => {
+    const algo = indexer({internalFaq: {index: mockIndex}}, (document) => {
+      return [
+        {
+          title: `${document.title} 01`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+        {
+          title: `${document.title} 02`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+      ]
+    })
+    const records = algo.transform([fixture])
+    expect(records[0]).toMatchObject({
+      title: `${fixture.title} 01`,
+      body: 'flattened body',
+      weirdField: 29,
+      keywords: fixture.keywords,
+    })
+  })
+
+  it('handles objectID override with array returned from serializer', () => {
+    const algo = indexer({internalFaq: {index: mockIndex}}, (document) => {
+      return [
+        {
+          title: `${document.title} 01`,
+          objectID: `${document.title}-01`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+        {
+          title: `${document.title} 02`,
+          objectID: `${document.title}-02`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+      ]
+    })
+    const records = algo.transform([fixture])
+    expect(records[1].objectID).toBe(`${fixture.title}-02`)
+  })
+
   it('can override default values', () => {
-    const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
+    const algo = indexer({internalFaq: {index: mockIndex}}, (_document) => {
       return {
         objectId: 'totally custom',
         type: 'invented',
@@ -69,9 +118,9 @@ describe('type index map', () => {
     }
 
     const indexMap = {
-      post: { index: (postIndex as unknown) as SearchIndex },
+      post: {index: postIndex as unknown as SearchIndex},
       article: {
-        index: (articleIndex as unknown) as SearchIndex,
+        index: articleIndex as unknown as SearchIndex,
         projection: `{ authors[]-> }`,
       },
     }
@@ -102,19 +151,19 @@ describe('webhookSync', () => {
 
     const i = indexer(
       {
-        post: { index: (postIndex as unknown) as SearchIndex },
+        post: {index: postIndex as unknown as SearchIndex},
         article: {
-          index: (articleIndex as unknown) as SearchIndex,
+          index: articleIndex as unknown as SearchIndex,
           projection: '{"title": "Hardcode"}',
         },
       },
       () => ({
         title: 'Hello',
       }),
-      (document) => document._id !== 'ignore-me'
+      (document) => document._id !== 'ignore-me',
     )
 
-    const client = { fetch: jest.fn() }
+    const client = {fetch: jest.fn()}
 
     // Fake a result from Sanity
     client.fetch.mockResolvedValueOnce([
@@ -156,7 +205,7 @@ describe('webhookSync', () => {
     expect(client.fetch.mock.calls[0][0]).toContain('_type == "post" => {...}')
     // Check the custom projection
     expect(client.fetch.mock.calls[0][0]).toContain(
-      '_type == "article" => {"title": "Hardcode"}'
+      '_type == "article" => {"title": "Hardcode"}',
     )
     expect(client.fetch.mock.calls[0][1]).toMatchObject({
       created: ['create-me', 'create-me-too'],
@@ -168,12 +217,12 @@ describe('webhookSync', () => {
     expect(articleIndex.saveObjects.mock.calls.length).toBe(1)
 
     const savedPostIndexIds = postIndex.saveObjects.mock.calls[0][0].map(
-      (object: Record<string, any>) => object['objectID']
+      (object: Record<string, any>) => object['objectID'],
     )
     expect(savedPostIndexIds).toEqual(['create-me', 'update-me'])
 
     const savedArticleIndexIds = articleIndex.saveObjects.mock.calls[0][0].map(
-      (object: Record<string, any>) => object['objectID']
+      (object: Record<string, any>) => object['objectID'],
     )
     expect(savedArticleIndexIds).toEqual(['create-me-too'])
 

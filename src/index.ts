@@ -1,6 +1,6 @@
-import { SearchIndex } from 'algoliasearch'
-import { standardValues, sleep } from './util'
-import { SanityDocumentStub, SanityClient } from '@sanity/client'
+import {SearchIndex} from 'algoliasearch'
+import {standardValues, sleep} from './util'
+import {SanityDocumentStub, SanityClient} from '@sanity/client'
 import {
   AlgoliaRecord,
   SerializeFunction,
@@ -8,7 +8,7 @@ import {
   WebhookBody,
 } from './types'
 
-export { flattenBlocks } from './util'
+export {flattenBlocks} from './util'
 
 type TypeConfig = {
   index: SearchIndex
@@ -40,15 +40,22 @@ const indexer = (
   serializer: SerializeFunction,
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
-  visible?: VisiblityFunction
+  visible?: VisiblityFunction,
 ) => {
   const transform = (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = documents.map(
       (document: SanityDocumentStub) => {
-        return Object.assign(standardValues(document), serializer(document))
-      }
+        const serializedDocs = serializer(document)
+        if (Array.isArray(serializedDocs)) {
+          return serializedDocs.map((chunk, index) =>
+            Object.assign(standardValues(chunk, String(index)), chunk),
+          )
+        } else {
+          return Object.assign(standardValues(document), serializedDocs)
+        }
+      },
     )
-    return records
+    return records.flat()
   }
 
   // Syncs the Sanity documents represented by the ids in the WebhookBody to
@@ -63,9 +70,9 @@ const indexer = (
     // Fetch the full objects that we are probably going to index in Algolia. Some
     // of these might get filtered out later by the optional visibility function.
     const query = `* [(_id in $created || _id in $updated) && _type in $types] ${indexMapProjection(
-      typeIndexMap
+      typeIndexMap,
     )}`
-    const { created, updated } = body.ids
+    const {created, updated} = body.ids
     const docs: SanityDocumentStub[] = await client.fetch(query, {
       created,
       updated,
@@ -84,7 +91,7 @@ const indexer = (
     })
     const visibleIds = visibleRecords.map((doc: any) => doc._id)
     const hiddenIds = allCreatedOrUpdated.filter(
-      (id: string) => !visibleIds.includes(id)
+      (id: string) => !visibleIds.includes(id),
     )
 
     const recordsToSave = transform(visibleRecords)
@@ -92,7 +99,7 @@ const indexer = (
     if (recordsToSave.length > 0) {
       for (const type in typeIndexMap) {
         await typeIndexMap[type].index.saveObjects(
-          recordsToSave.filter((r) => r.type === type)
+          recordsToSave.filter((r) => r.type === type),
         )
       }
     }
@@ -103,7 +110,7 @@ const indexer = (
      * before. Right now we blankly tell Algolia to try to delete any deleted record
      * in any index we have.
      */
-    const { deleted } = body.ids
+    const {deleted} = body.ids
     const recordsToDelete = deleted.concat(hiddenIds)
 
     if (recordsToDelete.length > 0) {
@@ -113,7 +120,7 @@ const indexer = (
     }
   }
 
-  return { transform, webhookSync }
+  return {transform, webhookSync}
 }
 
 export default indexer
