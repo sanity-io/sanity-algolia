@@ -44,29 +44,6 @@ export const flattenBlocks = (
     .join(' ')
 }
 
-/*
-// Some documents have fields that control visibility, even if they are
-// "published".
-function filterHidden(doc: SanityDocumentStub) {
-  if (doc._type === 'plugin') return doc.published
-  return doc.hasOwnProperty('hidden') ? !doc.hidden : true
-}
-
-const documentToObject = (document: SanityDocumentStub) => {
-  if (document._type === 'post') {
-    return Object.assign({}, standardvalues(document), {
-      title: document.title,
-      publishedAt: document.publishedAt,
-      description: flattenBlocks(document.blurb || [])
-      //text: flattenBlocks(r.text || [])
-    })
-  }
-
-  return null
-}
-
-*/
-
 export const getAllRecords = async (index: SearchIndex) => {
   let hits: AlgoliaRecord[] = []
   return index
