@@ -45,13 +45,17 @@ const indexer = (
   const transform = async (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
       documents.map(async (document: SanityDocumentStub) => {
-        return Object.assign(
-          standardValues(document),
-          await serializer(document)
-        )
+        const serializedDocs = await serializer(document)
+        if (Array.isArray(serializedDocs)) {
+          return serializedDocs.map((chunk) =>
+            Object.assign(standardValues(chunk), chunk)
+          )
+        } else {
+          return Object.assign(standardValues(document), serializedDocs)
+        }
       })
     )
-    return records
+    return records.flat()
   }
 
   // Syncs the Sanity documents represented by the ids in the WebhookBody to

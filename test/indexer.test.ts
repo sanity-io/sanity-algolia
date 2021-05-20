@@ -57,6 +57,33 @@ describe('transform', () => {
     })
   })
 
+  it('handles array returned from serializer', async () => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
+      return Promise.resolve([
+        {
+          title: `${document.title} 01`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+        {
+          title: `${document.title} 02`,
+          body: 'flattened body',
+          weirdField: 29,
+          keywords: document.keywords,
+        },
+      ])
+    })
+
+    const records = await algo.transform([fixture])
+    expect(records[0]).toMatchObject({
+      title: `${fixture.title} 01`,
+      body: 'flattened body',
+      weirdField: 29,
+      keywords: fixture.keywords,
+    })
+  })
+
   it('can override default values', async () => {
     const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
       return {
