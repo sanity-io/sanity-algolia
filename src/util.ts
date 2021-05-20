@@ -9,12 +9,16 @@ export const sleep = (ms: number) => {
 }
 
 // Properties that always should exist (only objectID is strictly needed from Algolia)
-export const standardValues = (doc: SanityDocumentStub) => {
-  return {
+export const standardValues = (
+  doc: SanityDocumentStub,
+  storeIdAsTag: boolean = false
+) => {
+  const values = {
     objectID: doc._id,
     type: doc._type,
     rev: doc._rev,
   }
+  return storeIdAsTag ? { ...values, _tags: [doc._id] } : values
 }
 
 // TODO: Probably want to support other languages besides English for the stopwords

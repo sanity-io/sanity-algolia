@@ -61,12 +61,14 @@ describe('transform', () => {
     const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
       return Promise.resolve([
         {
+          objectID: `${document._id}-01`,
           title: `${document.title} 01`,
           body: 'flattened body',
           weirdField: 29,
           keywords: document.keywords,
         },
         {
+          objectID: `${document._id}-02`,
           title: `${document.title} 02`,
           body: 'flattened body',
           weirdField: 29,
@@ -77,6 +79,7 @@ describe('transform', () => {
 
     const records = await algo.transform([fixture])
     expect(records[0]).toMatchObject({
+      objectID: `${fixture._id}-01`,
       title: `${fixture.title} 01`,
       body: 'flattened body',
       weirdField: 29,
@@ -98,6 +101,51 @@ describe('transform', () => {
       objectID: 'totally custom',
       type: 'invented',
       rev: 'made up',
+    })
+  })
+
+  it('can store the document id as a tag', async () => {
+    const algo = indexer(
+      { internalFaq: { index: mockIndex } },
+      (document) => {
+        return [
+          {
+            objectID: `${document._id}-01`,
+            title: `${document.title} 01`,
+            body: 'flattened body',
+            weirdField: 29,
+            keywords: document.keywords,
+          },
+          {
+            objectID: `${document._id}-02`,
+            title: `${document.title} 02`,
+            body: 'flattened body',
+            weirdField: 29,
+            keywords: document.keywords,
+          },
+        ]
+      },
+      undefined,
+      { useTags: true }
+    )
+
+    const records = await algo.transform([fixture])
+    expect(records[0]).toMatchObject({
+      objectID: 'a39a3ac3-4739-453f-91fa-d2870e3c5dd0-01',
+      _tags: ['a39a3ac3-4739-453f-91fa-d2870e3c5dd0'],
+      title: `${fixture.title} 01`,
+      body: 'flattened body',
+      weirdField: 29,
+      keywords: fixture.keywords,
+    })
+
+    expect(records[1]).toMatchObject({
+      objectID: 'a39a3ac3-4739-453f-91fa-d2870e3c5dd0-02',
+      _tags: ['a39a3ac3-4739-453f-91fa-d2870e3c5dd0'],
+      title: `${fixture.title} 02`,
+      body: 'flattened body',
+      weirdField: 29,
+      keywords: fixture.keywords,
     })
   })
 })

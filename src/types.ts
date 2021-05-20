@@ -10,6 +10,10 @@ export interface VisiblityFunction {
   (document: SanityDocumentStub): boolean
 }
 
+export type Options = {
+  useTags: boolean
+}
+
 export type WebhookBody = {
   ids: {
     created: string[]

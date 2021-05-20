@@ -5,6 +5,7 @@ import {
   AlgoliaRecord,
   SerializeFunction,
   VisiblityFunction,
+  Options,
   WebhookBody,
 } from './types'
 
@@ -40,18 +41,29 @@ const indexer = (
   serializer: SerializeFunction,
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
-  visible?: VisiblityFunction
+  visible?: VisiblityFunction,
+  // When { storeIdAsTag: true }, the source document id will be kept in the
+  // _tags property. In addition, it will cause the delete step to delete items
+  // from Algolia by a tags filter. This is useful if you expect to return
+  // multiple items from the serializer function, which would otherwise break
+  // the 1:1 mapping between the Sanity document._id and the Algolia objectID.
+  options?: Options
 ) => {
+  const { useTags } = options ?? {}
+
   const transform = async (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
       documents.map(async (document: SanityDocumentStub) => {
         const serializedDocs = await serializer(document)
         if (Array.isArray(serializedDocs)) {
           return serializedDocs.map((chunk) =>
-            Object.assign(standardValues(chunk), chunk)
+            Object.assign(standardValues(document, useTags), chunk)
           )
         } else {
-          return Object.assign(standardValues(document), serializedDocs)
+          return Object.assign(
+            standardValues(document, useTags),
+            serializedDocs
+          )
         }
       })
     )
@@ -113,7 +125,11 @@ const indexer = (
     const { deleted } = body.ids
     const recordsToDelete = deleted.concat(hiddenIds)
 
-    if (recordsToDelete.length > 0) {
+    if (useTags && recordsToDelete.length > 0) {
+      for await (const typeIndexConfig of Object.values(typeIndexMap)) {
+        typeIndexConfig.index.deleteBy({ tagFilters: [recordsToDelete] })
+      }
+    } else if (recordsToDelete.length > 0) {
       for await (const typeIndexConfig of Object.values(typeIndexMap)) {
         typeIndexConfig.index.deleteObjects(recordsToDelete)
       }
