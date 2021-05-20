@@ -84,7 +84,7 @@ const indexer = (
     const query = `* [(_id in $created || _id in $updated) && _type in $types] ${indexMapProjection(
       typeIndexMap
     )}`
-    const { created, updated } = body.ids
+    const { created = [], updated = [] } = body.ids
     const docs: SanityDocumentStub[] = await client.fetch(query, {
       created,
       updated,
@@ -122,7 +122,7 @@ const indexer = (
      * before. Right now we blankly tell Algolia to try to delete any deleted record
      * in any index we have.
      */
-    const { deleted } = body.ids
+    const { deleted = [] } = body.ids
     const recordsToDelete = deleted.concat(hiddenIds)
 
     if (useTags && recordsToDelete.length > 0) {
