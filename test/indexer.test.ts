@@ -87,7 +87,7 @@ describe('transform', () => {
   it('can override default values', async () => {
     const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
       return {
-        objectId: 'totally custom',
+        objectID: 'totally custom',
         type: 'invented',
         rev: 'made up',
       }
@@ -95,7 +95,7 @@ describe('transform', () => {
 
     const records = await algo.transform([fixture])
     expect(records[0]).toMatchObject({
-      objectId: 'totally custom',
+      objectID: 'totally custom',
       type: 'invented',
       rev: 'made up',
     })
