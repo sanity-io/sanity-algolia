@@ -11,7 +11,7 @@ export interface VisiblityFunction {
 }
 
 export type Options = {
-  useTags: boolean
+  useTags?: boolean
 }
 
 export type WebhookBody = {

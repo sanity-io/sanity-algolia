@@ -33,6 +33,22 @@ export const indexMapProjection = (indexMap: IndexMap): string => {
   return res
 }
 
+const deleteRecords = async (
+  ids: string[],
+  typeIndexMap: IndexMap,
+  useTags = false
+) => {
+  if (useTags && ids.length > 0) {
+    for await (const typeIndexConfig of Object.values(typeIndexMap)) {
+      typeIndexConfig.index.deleteBy({ tagFilters: [ids] })
+    }
+  } else if (ids.length > 0) {
+    for await (const typeIndexConfig of Object.values(typeIndexMap)) {
+      typeIndexConfig.index.deleteObjects(ids)
+    }
+  }
+}
+
 const indexer = (
   typeIndexMap: IndexMap,
   // Defines how the transformation from Sanity document to Algolia record is
@@ -42,11 +58,12 @@ const indexer = (
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
   visible?: VisiblityFunction,
-  // When { storeIdAsTag: true }, the source document id will be kept in the
+  // When { useTags: true }, the source document id will be kept in the
   // _tags property. In addition, it will cause the delete step to delete items
   // from Algolia by a tags filter. This is useful if you expect to return
   // multiple items from the serializer function, which would otherwise break
   // the 1:1 mapping between the Sanity document._id and the Algolia objectID.
+  // Any updated records will be purged before inserting the new data.
   options?: Options
 ) => {
   const { useTags } = options ?? {}
@@ -106,6 +123,15 @@ const indexer = (
       (id: string) => !visibleIds.includes(id)
     )
 
+    // Purge any updated records that do not have a 1:1 mapping
+    if (useTags) {
+      await deleteRecords(
+        updated.filter((id: string) => visibleIds.includes(id)),
+        typeIndexMap,
+        useTags
+      )
+    }
+
     const recordsToSave = await transform(visibleRecords)
 
     if (recordsToSave.length > 0) {
@@ -123,17 +149,8 @@ const indexer = (
      * in any index we have.
      */
     const { deleted = [] } = body.ids
-    const recordsToDelete = deleted.concat(hiddenIds)
 
-    if (useTags && recordsToDelete.length > 0) {
-      for await (const typeIndexConfig of Object.values(typeIndexMap)) {
-        typeIndexConfig.index.deleteBy({ tagFilters: [recordsToDelete] })
-      }
-    } else if (recordsToDelete.length > 0) {
-      for await (const typeIndexConfig of Object.values(typeIndexMap)) {
-        typeIndexConfig.index.deleteObjects(recordsToDelete)
-      }
-    }
+    await deleteRecords(deleted.concat(hiddenIds), typeIndexMap, useTags)
   }
 
   return { transform, webhookSync }
