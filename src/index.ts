@@ -178,7 +178,7 @@ const indexer = (
   // This is a convenience method to perform a full (re-)index.
   // When replaceAll is set, all the records in the index will be replaced
   // with items fetched from Sanity.
-  const syncAll = async (client: SanityClient, options: SyncOptions) => {
+  const syncAll = async (client: SanityClient, options: SyncOptions = {}) => {
     const { types: typesToSync = [] } = options
     const types =
       typesToSync.length > 0 ? typesToSync : Object.keys(typeIndexMap)
@@ -193,12 +193,20 @@ const indexer = (
   const syncRecords = async (
     client: SanityClient,
     ids: string[],
-    options: SyncOptions
+    options: SyncOptions = {}
   ) => {
     return await webhookSync(client, { ids: { created: ids } }, options)
   }
 
-  return { transform, webhookSync, syncAll, syncRecords }
+  // This is an explicit method to perform a full re-index.
+  const replaceAll = async (
+    client: SanityClient,
+    options: SyncOptions = {}
+  ) => {
+    return await syncAll(client, { ...options, replaceAll: true })
+  }
+
+  return { transform, webhookSync, syncAll, syncRecords, replaceAll }
 }
 
 export default indexer

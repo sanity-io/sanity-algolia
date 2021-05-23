@@ -410,7 +410,7 @@ describe('webhookSync - spread', () => {
   })
 })
 
-describe('syncAll - spread and replaceAll', () => {
+describe('replaceAll', () => {
   it('syncs all items', async () => {
     const postIndex = {
       replaceAllObjects: jest.fn(),
@@ -482,7 +482,7 @@ describe('syncAll - spread and replaceAll', () => {
     ])
 
     // @ts-ignore
-    await i.syncAll(client as SanityClient, { replaceAll: true })
+    await i.replaceAll(client as SanityClient)
 
     // Check that we queried for the updated and created objects of the types we
     // are interested in
