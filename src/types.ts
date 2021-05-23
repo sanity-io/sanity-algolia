@@ -11,7 +11,7 @@ export interface VisiblityFunction {
 }
 
 export type Options = {
-  spread?: boolean
+  deleteByQuery?: boolean
 }
 
 export type SyncOptions = {

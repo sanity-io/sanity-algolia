@@ -57,9 +57,9 @@ const saveRecords = async (
 const deleteRecords = async (
   ids: string[],
   typeIndexMap: IndexMap,
-  spread = false
+  deleteByQuery = false
 ) => {
-  if (spread && ids.length > 0) {
+  if (deleteByQuery && ids.length > 0) {
     for await (const typeIndexConfig of Object.values(typeIndexMap)) {
       typeIndexConfig.index.deleteBy({ tagFilters: [ids] })
     }
@@ -79,14 +79,17 @@ const indexer = (
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
   visible?: VisiblityFunction,
-  // When { spread: true }, the source document id will be kept in the
+  // When { deleteByQuery: true }, the source document id will be kept in the
   // _tags property. In addition, it will cause the delete step to delete items
   // from Algolia by a tags filter. This is useful if you expect to return
   // multiple items from the serializer function, which would otherwise break
   // the 1:1 mapping between the Sanity document._id and the Algolia objectID.
+  // In addition, the deleteBy method counts as a single operation, whereas
+  // deleteObjects wil cause each id to be registered as a separate operation.
+  // That said, deleteObjects can be more performant.
   options?: Options
 ) => {
-  const { spread } = options ?? {}
+  const { deleteByQuery } = options ?? {}
 
   const transform = async (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
@@ -94,10 +97,13 @@ const indexer = (
         const serializedDocs = await serializer(document)
         if (Array.isArray(serializedDocs)) {
           return serializedDocs.map((chunk) =>
-            Object.assign(standardValues(document, spread), chunk)
+            Object.assign(standardValues(document, deleteByQuery), chunk)
           )
         } else {
-          return Object.assign(standardValues(document, spread), serializedDocs)
+          return Object.assign(
+            standardValues(document, deleteByQuery),
+            serializedDocs
+          )
         }
       })
     )
@@ -147,11 +153,11 @@ const indexer = (
     )
 
     // Purge any updated records that do not have a 1:1 mapping
-    if (spread && !replaceAll) {
+    if (deleteByQuery && !replaceAll) {
       await deleteRecords(
         updated.filter((id: string) => visibleIds.includes(id)),
         typeIndexMap,
-        spread
+        deleteByQuery
       )
     }
 
@@ -169,7 +175,11 @@ const indexer = (
      */
     if (!replaceAll) {
       const { deleted = [] } = body.ids
-      await deleteRecords(deleted.concat(hiddenIds), typeIndexMap, spread)
+      await deleteRecords(
+        deleted.concat(hiddenIds),
+        typeIndexMap,
+        deleteByQuery
+      )
     }
 
     return recordsToSave

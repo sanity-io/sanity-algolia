@@ -126,7 +126,7 @@ describe('transform', () => {
         ]
       },
       undefined,
-      { spread: true }
+      { deleteByQuery: true }
     )
 
     const records = await algo.transform([fixture])
@@ -284,7 +284,7 @@ describe('webhookSync', () => {
   })
 })
 
-describe('webhookSync - spread', () => {
+describe('webhookSync - deleteByQuery', () => {
   it('syncs the webhook payload', async () => {
     const postIndex = {
       saveObjects: jest.fn(),
@@ -316,7 +316,7 @@ describe('webhookSync - spread', () => {
         }
       },
       (document) => document._id !== 'ignore-me',
-      { spread: true }
+      { deleteByQuery: true }
     )
 
     const client = { fetch: jest.fn() }
@@ -442,7 +442,7 @@ describe('replaceAll', () => {
         }
       },
       (document) => document._id !== 'ignore-me',
-      { spread: true }
+      { deleteByQuery: true }
     )
 
     const client = { fetch: jest.fn() }
