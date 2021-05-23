@@ -6,6 +6,7 @@ import {
   SerializeFunction,
   VisiblityFunction,
   Options,
+  SyncOptions,
   WebhookBody,
 } from './types'
 
@@ -33,12 +34,32 @@ export const indexMapProjection = (indexMap: IndexMap): string => {
   return res
 }
 
+const saveRecords = async (
+  recordsToSave: AlgoliaRecord[],
+  typeIndexMap: IndexMap,
+  replaceAll = false
+) => {
+  if (replaceAll && recordsToSave.length > 0) {
+    for (const type in typeIndexMap) {
+      await typeIndexMap[type].index.replaceAllObjects(
+        recordsToSave.filter((r) => r.type === type)
+      )
+    }
+  } else if (recordsToSave.length > 0) {
+    for (const type in typeIndexMap) {
+      await typeIndexMap[type].index.saveObjects(
+        recordsToSave.filter((r) => r.type === type)
+      )
+    }
+  }
+}
+
 const deleteRecords = async (
   ids: string[],
   typeIndexMap: IndexMap,
-  useTags = false
+  spread = false
 ) => {
-  if (useTags && ids.length > 0) {
+  if (spread && ids.length > 0) {
     for await (const typeIndexConfig of Object.values(typeIndexMap)) {
       typeIndexConfig.index.deleteBy({ tagFilters: [ids] })
     }
@@ -58,15 +79,14 @@ const indexer = (
   // Optionally provide logic for which documents should be visible or not.
   // Useful if your documents have a isHidden or isIndexed property or similar
   visible?: VisiblityFunction,
-  // When { useTags: true }, the source document id will be kept in the
+  // When { spread: true }, the source document id will be kept in the
   // _tags property. In addition, it will cause the delete step to delete items
   // from Algolia by a tags filter. This is useful if you expect to return
   // multiple items from the serializer function, which would otherwise break
   // the 1:1 mapping between the Sanity document._id and the Algolia objectID.
-  // Any updated records will be purged before inserting the new data.
   options?: Options
 ) => {
-  const { useTags } = options ?? {}
+  const { spread } = options ?? {}
 
   const transform = async (documents: SanityDocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
@@ -74,13 +94,10 @@ const indexer = (
         const serializedDocs = await serializer(document)
         if (Array.isArray(serializedDocs)) {
           return serializedDocs.map((chunk) =>
-            Object.assign(standardValues(document, useTags), chunk)
+            Object.assign(standardValues(document, spread), chunk)
           )
         } else {
-          return Object.assign(
-            standardValues(document, useTags),
-            serializedDocs
-          )
+          return Object.assign(standardValues(document, spread), serializedDocs)
         }
       })
     )
@@ -89,10 +106,16 @@ const indexer = (
 
   // Syncs the Sanity documents represented by the ids in the WebhookBody to
   // Algolia via the `typeIndexMap` and `serializer`
-  const webhookSync = async (client: SanityClient, body: WebhookBody) => {
+  const webhookSync = async (
+    client: SanityClient,
+    body: WebhookBody,
+    options: SyncOptions = {}
+  ) => {
+    const { replaceAll = false, sleep: sleepTime = 2000 } = options
+
     // Sleep a bit to make sure Sanity query engine is caught up to mutation
     // changes we are responding to.
-    await sleep(2000)
+    if (sleepTime > 0) await sleep(sleepTime)
 
     // Query Sanity for more information
     //
@@ -124,22 +147,18 @@ const indexer = (
     )
 
     // Purge any updated records that do not have a 1:1 mapping
-    if (useTags) {
+    if (spread && !replaceAll) {
       await deleteRecords(
         updated.filter((id: string) => visibleIds.includes(id)),
         typeIndexMap,
-        useTags
+        spread
       )
     }
 
     const recordsToSave = await transform(visibleRecords)
 
     if (recordsToSave.length > 0) {
-      for (const type in typeIndexMap) {
-        await typeIndexMap[type].index.saveObjects(
-          recordsToSave.filter((r) => r.type === type)
-        )
-      }
+      saveRecords(recordsToSave, typeIndexMap, replaceAll)
     }
 
     /*
@@ -148,12 +167,38 @@ const indexer = (
      * before. Right now we blankly tell Algolia to try to delete any deleted record
      * in any index we have.
      */
-    const { deleted = [] } = body.ids
+    if (!replaceAll) {
+      const { deleted = [] } = body.ids
+      await deleteRecords(deleted.concat(hiddenIds), typeIndexMap, spread)
+    }
 
-    await deleteRecords(deleted.concat(hiddenIds), typeIndexMap, useTags)
+    return recordsToSave
   }
 
-  return { transform, webhookSync }
+  // This is a convenience method to perform a full (re-)index.
+  // When replaceAll is set, all the records in the index will be replaced
+  // with items fetched from Sanity.
+  const syncAll = async (client: SanityClient, options: SyncOptions) => {
+    const { types: typesToSync = [] } = options
+    const types =
+      typesToSync.length > 0 ? typesToSync : Object.keys(typeIndexMap)
+    const ids = await client.fetch(
+      `*[_type in $types && !(_id in path("drafts.**"))][]._id`,
+      { types }
+    )
+    return await syncRecords(client, ids, options)
+  }
+
+  // This is a more low-level method to handle indexing items by their id.
+  const syncRecords = async (
+    client: SanityClient,
+    ids: string[],
+    options: SyncOptions
+  ) => {
+    return await webhookSync(client, { ids: { created: ids } }, options)
+  }
+
+  return { transform, webhookSync, syncAll, syncRecords }
 }
 
 export default indexer

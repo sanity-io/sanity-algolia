@@ -11,13 +11,19 @@ export interface VisiblityFunction {
 }
 
 export type Options = {
-  useTags?: boolean
+  spread?: boolean
+}
+
+export type SyncOptions = {
+  types?: string[]
+  replaceAll?: boolean
+  sleep?: number
 }
 
 export type WebhookBody = {
   ids: {
-    created: string[]
-    updated: string[]
-    deleted: string[]
+    created?: string[]
+    updated?: string[]
+    deleted?: string[]
   }
 }

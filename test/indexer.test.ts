@@ -126,7 +126,7 @@ describe('transform', () => {
         ]
       },
       undefined,
-      { useTags: true }
+      { spread: true }
     )
 
     const records = await algo.transform([fixture])
@@ -281,5 +281,248 @@ describe('webhookSync', () => {
     // indexed before
     expect(deletedPostIndexIds).toEqual(['delete-me', 'ignore-me'])
     expect(deletedArticleIndexIds).toEqual(['delete-me', 'ignore-me'])
+  })
+})
+
+describe('webhookSync - spread', () => {
+  it('syncs the webhook payload', async () => {
+    const postIndex = {
+      saveObjects: jest.fn(),
+      deleteBy: jest.fn(),
+    }
+
+    const articleIndex = {
+      saveObjects: jest.fn(),
+      deleteBy: jest.fn(),
+    }
+
+    const i = indexer(
+      {
+        post: { index: (postIndex as unknown) as SearchIndex },
+        article: {
+          index: (articleIndex as unknown) as SearchIndex,
+          projection: '{"title": "Hardcode"}',
+        },
+      },
+      (document) => {
+        if (Array.isArray(document.items)) {
+          return document.items.map((item) => {
+            return { objectID: item.id, title: 'Hello' }
+          })
+        } else {
+          return {
+            title: 'Hello',
+          }
+        }
+      },
+      (document) => document._id !== 'ignore-me',
+      { spread: true }
+    )
+
+    const client = { fetch: jest.fn() }
+
+    // Fake a result from Sanity
+    client.fetch.mockResolvedValueOnce([
+      {
+        _id: 'create-me',
+        _type: 'post',
+        _rev: '1',
+        items: [{ id: 'create-me-1' }, { id: 'create-me-2' }],
+      },
+      {
+        _id: 'create-me-too',
+        _type: 'article',
+        _rev: '1',
+        items: [{ id: 'create-me-too-1' }, { id: 'create-me-too-2' }],
+      },
+      {
+        _id: 'update-me',
+        _type: 'post',
+        _rev: '1',
+        items: [{ id: 'update-me-1' }],
+      },
+      {
+        _id: 'ignore-me',
+        _type: 'post',
+        _rev: 1,
+      },
+    ])
+
+    // @ts-ignore
+    await i.webhookSync(client as SanityClient, {
+      ids: {
+        created: ['create-me', 'create-me-too'],
+        updated: ['update-me', 'ignore-me'],
+        deleted: ['delete-me'],
+      },
+    })
+
+    // Check that we queried for the updated and created objects of the types we
+    // are interested in
+    expect(client.fetch.mock.calls.length).toBe(1)
+    // Check no custom projection (... fetches all fields)
+    expect(client.fetch.mock.calls[0][0]).toContain('_type == "post" => {...}')
+    // Check the custom projection
+    expect(client.fetch.mock.calls[0][0]).toContain(
+      '_type == "article" => {"title": "Hardcode"}'
+    )
+    expect(client.fetch.mock.calls[0][1]).toMatchObject({
+      created: ['create-me', 'create-me-too'],
+      updated: ['update-me', 'ignore-me'],
+      types: ['post', 'article'],
+    })
+
+    expect(postIndex.saveObjects.mock.calls.length).toBe(1)
+    expect(articleIndex.saveObjects.mock.calls.length).toBe(1)
+
+    const savedPostIndexIds = postIndex.saveObjects.mock.calls[0][0].map(
+      (object: Record<string, any>) => object['objectID']
+    )
+    expect(savedPostIndexIds).toEqual([
+      'create-me-1',
+      'create-me-2',
+      'update-me-1',
+    ])
+
+    const savedArticleIndexIds = articleIndex.saveObjects.mock.calls[0][0].map(
+      (object: Record<string, any>) => object['objectID']
+    )
+    expect(savedArticleIndexIds).toEqual(['create-me-too-1', 'create-me-too-2'])
+
+    expect(postIndex.deleteBy.mock.calls.length).toBe(2)
+    expect(articleIndex.deleteBy.mock.calls.length).toBe(2)
+
+    expect(postIndex.deleteBy.mock.calls[0][0]).toMatchObject({
+      tagFilters: [['update-me']],
+    })
+
+    expect(postIndex.deleteBy.mock.calls[1][0]).toMatchObject({
+      tagFilters: [['delete-me', 'ignore-me']],
+    })
+
+    expect(articleIndex.deleteBy.mock.calls[0][0]).toMatchObject({
+      tagFilters: [['update-me']],
+    })
+
+    expect(articleIndex.deleteBy.mock.calls[1][0]).toMatchObject({
+      tagFilters: [['delete-me', 'ignore-me']],
+    })
+  })
+})
+
+describe('syncAll - spread and replaceAll', () => {
+  it('syncs all items', async () => {
+    const postIndex = {
+      replaceAllObjects: jest.fn(),
+      deleteBy: jest.fn(),
+    }
+
+    const articleIndex = {
+      replaceAllObjects: jest.fn(),
+      deleteBy: jest.fn(),
+    }
+
+    const i = indexer(
+      {
+        post: { index: (postIndex as unknown) as SearchIndex },
+        article: {
+          index: (articleIndex as unknown) as SearchIndex,
+          projection: '{"title": "Hardcode"}',
+        },
+      },
+      (document) => {
+        if (Array.isArray(document.items)) {
+          return document.items.map((item) => {
+            return { objectID: item.id, title: 'Hello' }
+          })
+        } else {
+          return {
+            title: 'Hello',
+          }
+        }
+      },
+      (document) => document._id !== 'ignore-me',
+      { spread: true }
+    )
+
+    const client = { fetch: jest.fn() }
+
+    // Fake a result from Sanity
+    client.fetch.mockResolvedValueOnce([
+      'create-me',
+      'create-me-too',
+      'update-me',
+      'ignore-me',
+    ])
+
+    client.fetch.mockResolvedValueOnce([
+      {
+        _id: 'create-me',
+        _type: 'post',
+        _rev: '1',
+        items: [{ id: 'create-me-1' }, { id: 'create-me-2' }],
+      },
+      {
+        _id: 'create-me-too',
+        _type: 'article',
+        _rev: '1',
+        items: [{ id: 'create-me-too-1' }, { id: 'create-me-too-2' }],
+      },
+      {
+        _id: 'update-me',
+        _type: 'post',
+        _rev: '1',
+        items: [{ id: 'update-me-1' }],
+      },
+      {
+        _id: 'ignore-me',
+        _type: 'post',
+        _rev: 1,
+      },
+    ])
+
+    // @ts-ignore
+    await i.syncAll(client as SanityClient, { replaceAll: true })
+
+    // Check that we queried for the updated and created objects of the types we
+    // are interested in
+    expect(client.fetch.mock.calls.length).toBe(2)
+    expect(client.fetch.mock.calls[0][0]).toContain(
+      '*[_type in $types && !(_id in path("drafts.**"))][]._id'
+    )
+    expect(client.fetch.mock.calls[0][1]).toMatchObject({
+      types: ['post', 'article'],
+    })
+    // Check no custom projection (... fetches all fields)
+    expect(client.fetch.mock.calls[1][0]).toContain('_type == "post" => {...}')
+    // Check the custom projection
+    expect(client.fetch.mock.calls[1][0]).toContain(
+      '_type == "article" => {"title": "Hardcode"}'
+    )
+    expect(client.fetch.mock.calls[1][1]).toMatchObject({
+      created: ['create-me', 'create-me-too', 'update-me', 'ignore-me'],
+      updated: [],
+      types: ['post', 'article'],
+    })
+
+    expect(postIndex.replaceAllObjects.mock.calls.length).toBe(1)
+    expect(articleIndex.replaceAllObjects.mock.calls.length).toBe(1)
+
+    const savedPostIndexIds = postIndex.replaceAllObjects.mock.calls[0][0].map(
+      (object: Record<string, any>) => object['objectID']
+    )
+    expect(savedPostIndexIds).toEqual([
+      'create-me-1',
+      'create-me-2',
+      'update-me-1',
+    ])
+
+    const savedArticleIndexIds = articleIndex.replaceAllObjects.mock.calls[0][0].map(
+      (object: Record<string, any>) => object['objectID']
+    )
+    expect(savedArticleIndexIds).toEqual(['create-me-too-1', 'create-me-too-2'])
+
+    expect(postIndex.deleteBy.mock.calls.length).toBe(0)
+    expect(articleIndex.deleteBy.mock.calls.length).toBe(0)
   })
 })
