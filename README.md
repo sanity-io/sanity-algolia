@@ -132,6 +132,23 @@ const handler = (req: NowRequest, res: NowResponse) => {
 export default handler
 ```
 
+## First time indexing
+
+The webhook is great for keeping Algolia up to date to new changes in your Sanity datasets, but you likely also want to first index any content you already have. The simplest way to do this is to run the `sanityAlgolia.webhookSync` method manually. For ease of use you can export the sanity client and the sanityAlgolia objects from your handler file exemplified above and make use of them like this
+
+```javascript
+const sanity = ...; // configured Sanity client
+const sanityAlgolia = ...; // configured sanity-algolia
+
+// Fetch the _id of all the documents we want to index
+const types = ["article", "page", "product", "author"];
+const quqery = `* [_type in $types && !(_id in path("drafts.**"))][]._id`
+
+sanity.fetch(query, { types }).then(ids => 
+  sanityAlgolia.webhookSync(client, { ids: { created: ids, updated: [], deleted: [] }})
+)
+```
+
 ## Links
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
