@@ -42,11 +42,14 @@ const indexer = (
   // Useful if your documents have a isHidden or isIndexed property or similar
   visible?: VisiblityFunction
 ) => {
-  const transform = (documents: SanityDocumentStub[]) => {
-    const records: AlgoliaRecord[] = documents.map(
-      (document: SanityDocumentStub) => {
-        return Object.assign(standardValues(document), serializer(document))
-      }
+  const transform = async (documents: SanityDocumentStub[]) => {
+    const records: AlgoliaRecord[] = await Promise.all(
+      documents.map(async (document: SanityDocumentStub) => {
+        return Object.assign(
+          standardValues(document),
+          await serializer(document)
+        )
+      })
     )
     return records
   }
@@ -87,7 +90,7 @@ const indexer = (
       (id: string) => !visibleIds.includes(id)
     )
 
-    const recordsToSave = transform(visibleRecords)
+    const recordsToSave = await transform(visibleRecords)
 
     if (recordsToSave.length > 0) {
       for (const type in typeIndexMap) {

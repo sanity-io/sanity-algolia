@@ -5,7 +5,7 @@ import { SearchIndex } from 'algoliasearch'
 const mockIndex = {} as SearchIndex
 
 describe('transform', () => {
-  it('includes standard values for some standard properties', () => {
+  it('includes standard values for some standard properties', async () => {
     const algo = indexer(
       {
         internalFaq: { index: mockIndex },
@@ -13,13 +13,13 @@ describe('transform', () => {
       () => ({})
     )
 
-    const record = algo.transform([fixture])[0]
+    const record = (await algo.transform([fixture]))[0]
     expect(record.objectID).toEqual(fixture._id)
     expect(record.type).toEqual(fixture._type)
     expect(record.rev).toEqual(fixture._rev)
   })
 
-  it('serialized according to passed function', () => {
+  it('serialized according to passed function', async () => {
     const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
       return {
         title: document.title,
@@ -29,7 +29,7 @@ describe('transform', () => {
       }
     })
 
-    const records = algo.transform([fixture])
+    const records = await algo.transform([fixture])
     expect(records[0]).toMatchObject({
       title: fixture.title,
       body: 'flattened body',
@@ -38,7 +38,26 @@ describe('transform', () => {
     })
   })
 
-  it('can override default values', () => {
+  it('serialized according to passed async function', async () => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
+      return Promise.resolve({
+        title: document.title,
+        body: 'flattened body',
+        weirdField: 29,
+        keywords: document.keywords,
+      })
+    })
+
+    const records = await algo.transform([fixture])
+    expect(records[0]).toMatchObject({
+      title: fixture.title,
+      body: 'flattened body',
+      weirdField: 29,
+      keywords: fixture.keywords,
+    })
+  })
+
+  it('can override default values', async () => {
     const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
       return {
         objectID: 'totally custom',
@@ -47,7 +66,7 @@ describe('transform', () => {
       }
     })
 
-    const records = algo.transform([fixture])
+    const records = await algo.transform([fixture])
     expect(records[0]).toMatchObject({
       objectID: 'totally custom',
       type: 'invented',
