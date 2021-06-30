@@ -10,10 +10,21 @@ export interface VisiblityFunction {
   (document: SanityDocumentStub): boolean
 }
 
+export type Options = {
+  deleteByQuery?: boolean
+}
+
+export type SyncOptions = {
+  types?: string[]
+  replaceAll?: boolean
+  sleep?: number
+  params?: object
+}
+
 export type WebhookBody = {
   ids: {
-    created: string[]
-    updated: string[]
-    deleted: string[]
+    created?: string[]
+    updated?: string[]
+    deleted?: string[]
   }
 }
