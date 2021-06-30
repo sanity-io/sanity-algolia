@@ -117,7 +117,7 @@ const indexer = (
     body: WebhookBody,
     options: SyncOptions = {}
   ) => {
-    const { replaceAll = false, sleep: sleepTime = 2000 } = options
+    const { replaceAll = false, sleep: sleepTime = 2000, params = {} } = options
 
     // Sleep a bit to make sure Sanity query engine is caught up to mutation
     // changes we are responding to.
@@ -132,6 +132,7 @@ const indexer = (
     )}`
     const { created = [], updated = [] } = body.ids
     const docs: SanityDocumentStub[] = await client.fetch(query, {
+      ...params,
       created,
       updated,
       types: Object.keys(typeIndexMap),

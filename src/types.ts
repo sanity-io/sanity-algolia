@@ -18,6 +18,7 @@ export type SyncOptions = {
   types?: string[]
   replaceAll?: boolean
   sleep?: number
+  params?: object
 }
 
 export type WebhookBody = {
