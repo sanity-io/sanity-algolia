@@ -1,5 +1,7 @@
 # Sanity + Algolia = ♥️
 
+**Note: This plugin is not currently updated to work with Sanitys new GROQ powered Webhooks**
+
 Here are some helpers to facilitate indexing your Sanity documents as Algolia records, via custom serializing, optional hidden/visibility filtering and directly syncing to an Algolia index from a Sanity webhook.
 
 ## Webhook example
