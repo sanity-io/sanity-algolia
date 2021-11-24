@@ -144,7 +144,7 @@ const sanityAlgolia = ...; // configured sanity-algolia
 
 // Fetch the _id of all the documents we want to index
 const types = ["article", "page", "product", "author"];
-const quqery = `* [_type in $types && !(_id in path("drafts.**"))][]._id`
+const query = `* [_type in $types && !(_id in path("drafts.**"))][]._id`
 
 sanity.fetch(query, { types }).then(ids => 
   sanityAlgolia.webhookSync(client, { ids: { created: ids, updated: [], deleted: [] }})
