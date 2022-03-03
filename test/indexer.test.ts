@@ -20,7 +20,7 @@ describe('transform', () => {
   })
 
   it('serialized according to passed function', async () => {
-    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, document => {
       return {
         title: document.title,
         body: 'flattened body',
@@ -39,7 +39,7 @@ describe('transform', () => {
   })
 
   it('serialized according to passed async function', async () => {
-    const algo = indexer({ internalFaq: { index: mockIndex } }, (document) => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, document => {
       return Promise.resolve({
         title: document.title,
         body: 'flattened body',
@@ -58,7 +58,7 @@ describe('transform', () => {
   })
 
   it('can override default values', async () => {
-    const algo = indexer({ internalFaq: { index: mockIndex } }, (_document) => {
+    const algo = indexer({ internalFaq: { index: mockIndex } }, _document => {
       return {
         objectID: 'totally custom',
         type: 'invented',
@@ -130,7 +130,7 @@ describe('webhookSync', () => {
       () => ({
         title: 'Hello',
       }),
-      (document) => document._id !== 'ignore-me'
+      document => document._id !== 'ignore-me'
     )
 
     const client = { fetch: jest.fn() }
