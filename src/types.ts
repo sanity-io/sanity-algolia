@@ -1,4 +1,4 @@
-import type { SanityDocumentStub } from '@sanity/client'
+import { SanityDocumentStub } from '@sanity/client'
 
 export type AlgoliaRecord = Readonly<Record<string, any>>
 

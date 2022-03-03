@@ -1,6 +1,6 @@
 import { SearchIndex } from 'algoliasearch'
 import { standardValues, sleep } from './util'
-import type { SanityDocumentStub, SanityClient } from '@sanity/client'
+import { SanityDocumentStub, SanityClient } from '@sanity/client'
 import {
   AlgoliaRecord,
   SerializeFunction,
