@@ -19,21 +19,24 @@
   },
   "peerDependencies": {},
   "husky": {
-    "hooks": {}
+    "hooks": {
+      "pre-commit": "tsdx lint src test"
+    }
   },
   "name": "sanity-algolia",
   "author": "Rune Botten",
   "module": "dist/sanity-algolia.esm.js",
   "devDependencies": {
-    "@sanity/client": "^3.0.6",
     "@types/jest": "^26.0.14",
     "@types/stopword": "^0.3.0",
     "husky": "^4.3.0",
+    "prettier": "^2.1.2",
     "tsdx": "^0.14.0",
     "tslib": "^2.0.2",
     "typescript": "^4.0.3"
   },
   "dependencies": {
+    "@sanity/client": "^2.0.1",
     "algoliasearch": "^4.5.1",
     "stopword": "^1.0.3"
   }

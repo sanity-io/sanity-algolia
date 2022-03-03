@@ -1,6 +1,6 @@
 // We do this locally just to trim the size of the records a bit
 import sw from 'stopword'
-import type { SanityDocumentStub } from '@sanity/client'
+import { SanityDocumentStub } from '@sanity/client'
 import { SearchIndex } from 'algoliasearch'
 import { AlgoliaRecord } from 'types'
 
