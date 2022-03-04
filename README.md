@@ -141,7 +141,7 @@ const types = ["article", "page", "product", "author"];
 const query = `* [_type in $types && !(_id in path("drafts.**"))][]._id`
 
 sanity.fetch(query, { types }).then(ids => 
-  sanityAlgolia.webhookSync(client, { ids: { created: ids, updated: [], deleted: [] }})
+  sanityAlgolia.webhookSync(sanity, { ids: { created: ids, updated: [], deleted: [] }})
 )
 ```
 
