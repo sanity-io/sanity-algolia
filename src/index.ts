@@ -10,12 +10,12 @@ import {
 
 export { flattenBlocks } from './util'
 
-type TypeConfig = {
+export type TypeConfig = {
   index: SearchIndex
   projection?: string
 }
 
-type IndexMap = {
+export type IndexMap = {
   [key: string]: TypeConfig
 }
 
