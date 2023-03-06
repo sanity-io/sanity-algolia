@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -17,7 +17,6 @@
     "lint": "tsdx lint src test",
     "prepare": "tsdx build"
   },
-  "peerDependencies": {},
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint src test"
@@ -36,7 +35,6 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "@sanity/client": "^2.0.1",
     "algoliasearch": "^4.5.1",
     "stopword": "^1.0.3"
   }
