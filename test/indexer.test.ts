@@ -1,6 +1,7 @@
 import indexer, { indexMapProjection } from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 import { SearchIndex } from 'algoliasearch'
+import { SanityApiclient } from '../src/types'
 
 const mockIndex = {} as SearchIndex
 
@@ -106,8 +107,6 @@ describe('type index map', () => {
 })
 
 describe('webhookSync', () => {
-  test.todo('uses the correct index')
-
   it('syncs the webhook payload', async () => {
     const postIndex = {
       saveObjects: jest.fn(),
@@ -159,8 +158,7 @@ describe('webhookSync', () => {
       },
     ])
 
-    // @ts-ignore
-    await i.webhookSync(client as SanityClient, {
+    await i.webhookSync((client as unknown) as SanityApiclient, {
       ids: {
         updated: ['update-me', 'ignore-me'],
         created: ['create-me', 'create-me-too'],
@@ -206,5 +204,101 @@ describe('webhookSync', () => {
     // indexed before
     expect(deletedPostIndexIds).toEqual(['delete-me', 'ignore-me'])
     expect(deletedArticleIndexIds).toEqual(['delete-me', 'ignore-me'])
+  })
+
+  it('uses the correct index', async () => {
+    const sharedIndex = {
+      saveObjects: jest.fn(),
+      deleteObjects: jest.fn(),
+    }
+
+    const authorIndex = {
+      saveObjects: jest.fn(),
+      deleteObjects: jest.fn(),
+    }
+
+    const i = indexer(
+      {
+        post: { index: (sharedIndex as unknown) as SearchIndex },
+        article: { index: (sharedIndex as unknown) as SearchIndex },
+        author: { index: (authorIndex as unknown) as SearchIndex },
+      },
+      () => ({
+        title: 'Hello',
+      })
+    )
+
+    const client = { fetch: jest.fn() }
+
+    // Fake a result from Sanity
+    client.fetch.mockResolvedValueOnce([
+      {
+        _id: 'create-me',
+        _type: 'post',
+        _rev: '1',
+      },
+      {
+        _id: 'create-me-too',
+        _type: 'article',
+        _rev: '1',
+      },
+      {
+        _id: 'update-me',
+        _type: 'post',
+        _rev: '2',
+      },
+      {
+        _id: 'update-me-too',
+        _type: 'article',
+        _rev: '2',
+      },
+      {
+        _id: 'john_doe',
+        _type: 'author',
+        _rev: '1',
+      },
+      {
+        _id: 'jane_doe',
+        _type: 'author',
+        _rev: '2',
+      },
+    ])
+
+    const webhookBody = {
+      ids: {
+        updated: ['update-me', 'update-me-too', 'jane_doe'],
+        created: ['create-me', 'create-me-too', 'john_doe'],
+        deleted: ['delete-me', 'delete-me-too', 'richard_roe'],
+      },
+    }
+    await i.webhookSync((client as unknown) as SanityApiclient, webhookBody)
+
+    expect(sharedIndex.saveObjects.mock.calls.length).toBe(2)
+    expect(sharedIndex.deleteObjects.mock.calls.length).toBe(1)
+
+    expect(authorIndex.saveObjects.mock.calls.length).toBe(1)
+    expect(authorIndex.deleteObjects.mock.calls.length).toBe(1)
+
+    const savedSharedIndexIds = sharedIndex.saveObjects.mock.calls
+      .reduce((acc, next) => acc.concat(next), [])
+      .flat()
+      .map((object: Record<string, any>) => object['objectID'])
+    expect(savedSharedIndexIds).toEqual([
+      'create-me',
+      'update-me',
+      'create-me-too',
+      'update-me-too',
+    ])
+
+    const savedAuthorIndexIds = authorIndex.saveObjects.mock.calls
+      .reduce((acc, next) => acc.concat(next), [])
+      .flat()
+      .map((object: Record<string, any>) => object['objectID'])
+    expect(savedAuthorIndexIds).toEqual(['john_doe', 'jane_doe'])
+
+    const deletedSharedIndexIds = sharedIndex.deleteObjects.mock.calls[0][0]
+    const deletedAuthorIndexIds = authorIndex.deleteObjects.mock.calls[0][0]
+    expect(deletedSharedIndexIds).toEqual(webhookBody.ids.deleted)
+    expect(deletedAuthorIndexIds).toEqual(webhookBody.ids.deleted)
   })
 })

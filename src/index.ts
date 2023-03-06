@@ -111,8 +111,13 @@ const indexer = (
     const recordsToDelete = deleted.concat(hiddenIds)
 
     if (recordsToDelete.length > 0) {
-      for await (const typeIndexConfig of Object.values(typeIndexMap)) {
-        typeIndexConfig.index.deleteObjects(recordsToDelete)
+      const uniqueIndexes = new Set(
+        Object.values(typeIndexMap).map(
+          (typeIndexConfig) => typeIndexConfig.index
+        )
+      )
+      for (const index of uniqueIndexes) {
+        await index.deleteObjects(recordsToDelete)
       }
     }
   }
