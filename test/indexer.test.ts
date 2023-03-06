@@ -1,7 +1,7 @@
 import indexer, { indexMapProjection } from '../src/index'
 import fixture from './fixtures/internalFaq.json'
 import { SearchIndex } from 'algoliasearch'
-import { SanityClient } from '@sanity/client'
+import { SanityApiclient } from '../src/types'
 
 const mockIndex = {} as SearchIndex
 
@@ -158,7 +158,7 @@ describe('webhookSync', () => {
       },
     ])
 
-    await i.webhookSync((client as unknown) as SanityClient, {
+    await i.webhookSync((client as unknown) as SanityApiclient, {
       ids: {
         updated: ['update-me', 'ignore-me'],
         created: ['create-me', 'create-me-too'],
@@ -271,7 +271,7 @@ describe('webhookSync', () => {
         deleted: ['delete-me', 'delete-me-too', 'richard_roe'],
       },
     }
-    await i.webhookSync((client as unknown) as SanityClient, webhookBody)
+    await i.webhookSync((client as unknown) as SanityApiclient, webhookBody)
 
     expect(sharedIndex.saveObjects.mock.calls.length).toBe(2)
     expect(sharedIndex.deleteObjects.mock.calls.length).toBe(1)
