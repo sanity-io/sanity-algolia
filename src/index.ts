@@ -1,11 +1,12 @@
 import { SearchIndex } from 'algoliasearch'
 import { standardValues, sleep } from './util'
-import { SanityDocumentStub, SanityClient } from '@sanity/client'
-import {
+import type {
   AlgoliaRecord,
   SerializeFunction,
   VisiblityFunction,
   WebhookBody,
+  DocumentStub,
+  SanityApiclient,
 } from './types'
 
 export { flattenBlocks } from './util'
@@ -42,9 +43,9 @@ const indexer = (
   // Useful if your documents have a isHidden or isIndexed property or similar
   visible?: VisiblityFunction
 ) => {
-  const transform = async (documents: SanityDocumentStub[]) => {
+  const transform = async (documents: DocumentStub[]) => {
     const records: AlgoliaRecord[] = await Promise.all(
-      documents.map(async (document: SanityDocumentStub) => {
+      documents.map(async (document: DocumentStub) => {
         return Object.assign(
           standardValues(document),
           await serializer(document)
@@ -56,7 +57,7 @@ const indexer = (
 
   // Syncs the Sanity documents represented by the ids in the WebhookBody to
   // Algolia via the `typeIndexMap` and `serializer`
-  const webhookSync = async (client: SanityClient, body: WebhookBody) => {
+  const webhookSync = async (client: SanityApiclient, body: WebhookBody) => {
     // Sleep a bit to make sure Sanity query engine is caught up to mutation
     // changes we are responding to.
     await sleep(2000)
@@ -69,7 +70,7 @@ const indexer = (
       typeIndexMap
     )}`
     const { created = [], updated = [] } = body.ids
-    const docs: SanityDocumentStub[] = await client.fetch(query, {
+    const docs: DocumentStub[] = await client.fetch(query, {
       created,
       updated,
       types: Object.keys(typeIndexMap),
