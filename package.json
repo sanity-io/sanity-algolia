@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.14",
     "@types/stopword": "^0.3.0",
-    "husky": "^4.3.0",
+    "husky": "^8.0.0",
     "prettier": "^2.1.2",
     "tsdx": "^0.14.0",
     "tslib": "^2.0.2",
