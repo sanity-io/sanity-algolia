@@ -36,6 +36,6 @@
   },
   "dependencies": {
     "algoliasearch": "^4.5.1",
-    "stopword": "^1.0.3"
+    "stopword": "^3.0.0"
   }
 }
