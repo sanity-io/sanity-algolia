@@ -26,7 +26,7 @@
   "author": "Rune Botten",
   "module": "dist/sanity-algolia.esm.js",
   "devDependencies": {
-    "@types/jest": "^26.0.14",
+    "@types/jest": "^29.5.14",
     "@types/stopword": "^0.3.0",
     "husky": "^4.3.0",
     "prettier": "^2.1.2",
