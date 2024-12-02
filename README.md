@@ -21,6 +21,11 @@ After deployment you can view the [Webhook attempts log](https://www.sanity.io/d
 
 The logic inside `api/algolia.ts` handles both first-time indexing and incremental updates.
 
+### Environment variables
+
+You will need to add `algoliaAppId` and `algoliaApiKey` which can be found inside your Algolia account.
+You will also need your `projectId` and `dataset` name to initiate Sanity client.
+
 ### Initial indexing
 
 If you’re indexing for the first time, you have to run the command below to start it and include query params `initialIndex=true`. 
