@@ -1,12 +1,13 @@
 import { algoliasearch } from 'algoliasearch'
 import { createClient } from '@sanity/client'
 
-const algoliaAppId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID
-const algoliaApiKey = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY
-const sanityProjectId = process.env.SANITY_PROJECT_ID
-const sanityDataset = process.env.SANITY_DATASET
+const algoliaAppId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!;
+const algoliaApiKey = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY!;
+const sanityProjectId = process.env.SANITY_PROJECT_ID!;
+const sanityDataset = process.env.SANITY_DATASET!;
 
 const algoliaClient = algoliasearch(algoliaAppId, algoliaApiKey)
+// Add name for your Algolia index
 const indexName = 'my-index'
 
 const sanityClient = createClient({
@@ -33,7 +34,7 @@ async function performInitialIndexing() {
     _updatedAt
   }`)
 
-  const records = sanityData.map((doc) => ({
+  const records = sanityData.map((doc: any) => ({
     objectID: doc._id,
     title: doc.title,
     slug: doc.slug.current,
@@ -56,7 +57,7 @@ async function performInitialIndexing() {
   }
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const initialIndex = searchParams.get('initialIndex') === 'true'
