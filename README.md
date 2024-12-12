@@ -3,7 +3,7 @@
 Sanity provides a structured content repository, live editing environment, and scalable content CDN. Algolia gives your application or website users a top-tier search experience. This repository provides an example of how to tie the two platforms together using webhooks and a cloud function. This will allow you to keep your Algolia search index up-to-date as you publish, update, and delete content in Sanity.
 
 ## Upgrading from the `sanity-algolia` package
-Both the Sanity webhook and the Algolia client have significantly improved since the `sanity-algolia` package was originally released, so much so that the package is no longer necessary. Thus, we recommend refactoring to use GROQ-powered webhooks and the Algolia client directly. See below for details.
+Both Sanity webhooks and the Algolia client have significantly improved since the `sanity-algolia` package was originally released, so much so that the package is no longer necessary. Thus, we recommend refactoring to use GROQ-powered webhooks and the Algolia client directly. See below for details.
 
 If you need to access the code for indexing with Algolia v4, see this [tagged branch](https://github.com/sanity-io/sanity-algolia/tree/1.1.0).
 
