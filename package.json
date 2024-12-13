@@ -4,8 +4,9 @@
     "license": "MIT",
     "type": "module",
     "dependencies": {
-        "algoliasearch": "^5.15.0",
-        "@sanity/client": "^6.22.5"
+        "@sanity/client": "^6.22.5",
+        "@sanity/webhook": "^4.0.4",
+        "algoliasearch": "^5.15.0"
     },
     "devDependencies": {
         "typescript": "^5.1.6"
