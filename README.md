@@ -16,6 +16,34 @@ The example below shows a serverless function to start initial indexing with Alg
 ### Setup Webhook
 Set up the following [Webhook](https://www.sanity.io/manage/webhooks/share?name=Algolia%20Indexing&description=indexes%20content%20for%20Algolia&url=https%3A%2F%2Fnextjs-sanity-algolia.vercel.app%2Fapi%2Falgolia&on=create&on=update&on=delete&filter=_type%20%3D%3D%27post%27&projection=%7B%0A%20%20%22transactionId%22%3A%20_rev%2C%0A%20%20%22projectId%22%3A%20sanity%3A%3AprojectId()%2C%0A%22dataset%22%3A%20sanity%3A%3Adataset()%2C%0A_id%2C%0A%22operation%22%3A%20delta%3A%3Aoperation()%2C%0A%22value%22%3A%20%7B%0A%20%20%20%20%22objectID%22%3A%20_id%2C%0A%20%20%20%20%22title%22%3A%20title%2C%0A%20%20%20%20%22slug%22%3A%20slug.current%2C%0A%20%20%20%20%22body%22%3A%20pt%3A%3Atext(content)%2C%0A%20%20%20%20%22_type%22%3A%20_type%2C%0A%20%20%20%20%22coverImage%22%3A%20coverImage%2C%0A%20%20%20%20%22date%22%3A%20date%2C%0A%20%20%20%20%22_createdAt%22%3A%20_createdAt%2C%0A%20%20%20%20%22_updatedAt%22%3A%20_updatedAt%0A%20%20%7D%0A%7D%0A&httpMethod=POST&apiVersion=v2021-03-25&includeDrafts=&headers=%7B%7D) in Sanity.
 
+For the "Filter" field, enter a [GROQ filter](https://www.sanity.io/guides/filters-in-groq-powered-webhooks) expression to index only the content types you want, e.g. `_type == 'post'`
+
+In the "Projection" field, specify the content fields you want to index, for example: 
+
+```
+{
+  "transactionId": _rev,
+  "projectId": sanity::projectId(),
+  "dataset": sanity::dataset(),
+  _id,
+  // Returns a string value of "create", "update" or "delete" according to which operation was executed
+  "operation": delta::operation(),
+  // Define the payload:
+  "value": {
+    "objectID": _id,
+    "title": title,
+    "slug": slug.current,
+    // Portable text
+    "body": pt::text(content),
+    "_type": _type,
+    "coverImage": coverImage,
+    "date": date,
+    "_createdAt": _createdAt,
+    "_updatedAt": _updatedAt
+  }
+}
+```
+
 Adjust content types according to your schema, as well as GROQ projection inside `value` object.
 
 You should configure your [webhook](https://www.sanity.io/docs/webhooks) to target the URL of the serverless function once deployed.
