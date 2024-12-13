@@ -70,25 +70,25 @@ export async function POST(request: Request) {
       return Response.json(response);
     }
 
-     // Validate webhook signature
-     const signature = request.headers.get(SIGNATURE_HEADER_NAME);
-     if (!signature) {
-       return Response.json(
-         { success: false, message: "Missing signature header" },
-         { status: 401 }
-       );
-     }
- 
-     // Get request body for signature validation
-     const body = await request.text(); 
-     const isValid = await isValidSignature(body, signature, webhookSecret);
- 
-     if (!isValid) {
-       return Response.json(
-         { success: false, message: "Invalid signature" },
-         { status: 401 }
-       );
-     }
+    // Validate webhook signature
+    const signature = request.headers.get(SIGNATURE_HEADER_NAME);
+    if (!signature) {
+      return Response.json(
+        { success: false, message: "Missing signature header" },
+        { status: 401 }
+      );
+    }
+
+    // Get request body for signature validation
+    const body = await request.text();
+    const isValid = await isValidSignature(body, signature, webhookSecret);
+
+    if (!isValid) {
+      return Response.json(
+        { success: false, message: "Invalid signature" },
+        { status: 401 }
+      );
+    }
 
     // Incremental updates based on webhook payload
     let payload;
@@ -97,10 +97,7 @@ export async function POST(request: Request) {
       console.log("Parsed Payload:", JSON.stringify(payload));
     } catch (jsonError) {
       console.warn("No JSON payload provided");
-      return Response.json(
-        { error: "No payload provided" },
-        { status: 400 }
-      );
+      return Response.json({ error: "No payload provided" }, { status: 400 });
     }
 
     const { _id, operation, value } = payload;
