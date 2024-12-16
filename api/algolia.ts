@@ -30,7 +30,7 @@ async function performInitialIndexing() {
     slug,
     "body": pt::text(content),
     _type,
-    coverImage,
+    "coverImage": coverImage.asset->url,
     date,
     _createdAt,
     _updatedAt
