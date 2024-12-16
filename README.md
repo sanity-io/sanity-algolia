@@ -39,7 +39,7 @@ Projection (data to be sent to the serverless function):
     // Portable text
     "body": pt::text(content),
     "_type": _type,
-    "coverImage": coverImage,
+    "coverImage": coverImage.asset->url,
     "date": date,
     "_createdAt": _createdAt,
     "_updatedAt": _updatedAt
