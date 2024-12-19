@@ -40,7 +40,10 @@ async function performInitialIndexing() {
     objectID: doc._id,
     title: doc.title,
     slug: doc.slug.current,
-    body: doc.body?.slice(0, 9500), // Truncate if necessary
+    // Truncating the body if it's too long. 
+    // Another approach: defining multiple records:
+    // https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/indexing-long-documents/
+    body: doc.body?.slice(0, 9500),
     coverImage: doc.coverImage,
     date: doc.date,
     _createdAt: doc._createdAt,

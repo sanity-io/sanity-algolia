@@ -78,10 +78,16 @@ After you run the above command, it will create a new named index in Algolia and
 
 For incremental indexing, the Webhook provides an `operation` parameter, which will be either `create`, `update` or `delete`. The code in the serverless function uses Algolia v5 (`deleteObject` or `saveObject`) accordingly to update its index incrementally.
 
+### Indexing long records
+Your Algolia plan has limits on the number of records and the size of records you can import. If you exceed these limits, you might get an error: `Algolia error: Record too big`. To work around this Algolia suggests to break the page into sections or even paragraphs, and store each as a separate record.  When you split a page, the same content might appear in multiple records. [To avoid duplicates](https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/indexing-long-documents/#avoid-duplicates), you can turn on `distinct` and set `attributeForDistinct`. 
+[Indexing long documents with Algolia](https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/indexing-long-documents/).
+
 ## Links
 
 - [Sanity webhook documentataion](https://www.sanity.io/docs/webhooks)
 - [Algolia indexing documentation](https://www.algolia.com/doc/libraries/javascript/v5/methods/search/)
+- [Troubleshooting indexing issues](https://www.algolia.com/doc/tools/crawler/troubleshooting/indexing-issues/)
+- [Indexing long documents](https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/indexing-long-documents/)
 - [The GROQ Query language](https://www.sanity.io/docs/groq)
 - [Vercel Serverless Functions documentation](https://vercel.com/docs/serverless-functions/introduction)
 - [Netlify functions documentation](https://docs.netlify.com/functions/build-with-javascript/)
