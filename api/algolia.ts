@@ -2,15 +2,15 @@ import { algoliasearch } from "algoliasearch";
 import { createClient } from "@sanity/client";
 import { isValidSignature, SIGNATURE_HEADER_NAME } from "@sanity/webhook";
 
-const algoliaAppId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!;
-const algoliaApiKey = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY!;
+const algoliaAppId = process.env.ALGOLIA_APP_ID!;
+const algoliaApiKey = process.env.ALGOLIA_API_KEY!;
+const indexName = process.env.ALGOLIA_INDEX_NAME!;
+
 const sanityProjectId = process.env.SANITY_PROJECT_ID!;
 const sanityDataset = process.env.SANITY_DATASET!;
 const webhookSecret = process.env.SANITY_WEBHOOK_SECRET!;
 
 const algoliaClient = algoliasearch(algoliaAppId, algoliaApiKey);
-// Add name for your Algolia index
-const indexName = "my-index";
 
 const sanityClient = createClient({
   projectId: sanityProjectId,
@@ -40,7 +40,7 @@ async function performInitialIndexing() {
     objectID: doc._id,
     title: doc.title,
     slug: doc.slug.current,
-    // Truncating the body if it's too long. 
+    // Truncating the body if it's too long.
     // Another approach: defining multiple records:
     // https://www.algolia.com/doc/guides/sending-and-managing-data/prepare-your-data/how-to/indexing-long-documents/
     body: doc.body?.slice(0, 9500),
