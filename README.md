@@ -75,14 +75,17 @@ This example can be used as-is for a NextJS App Router route handler, but you ca
 #### Install dependencies
 
 ```bash
-npm install algoliasearch @sanity/webhooks @sanity/client
+npm install algoliasearch @sanity/webhook @sanity/client
 ```
 
 Note the client may already be installed or exposed via a framework integration like Next/Nuxt/Astro
 
 #### Environment variables
 
-You must add `ALGOLIA_APP_ID`, `ALGOLIA_INDEX_NAME` and `ALGOLIA_API_KEY`, to your environment variables, which can all be [found in your Algolia account](https://www.algolia.com/doc/guides/security/api-keys/#create-and-manage-your-api-keys). You will also need to add your `SANITY_WEBHOOK_SECRET` from when you set up the webhook.
+You must add `ALGOLIA_APP_ID`, `ALGOLIA_INDEX_NAME` and `ALGOLIA_API_KEY`, to your environment variables, which can all be [found in your Algolia account](https://www.algolia.com/doc/guides/security/api-keys/#create-and-manage-your-api-keys). Algolia comes with a set of [predefined API keys](https://www.algolia.com/doc/guides/security/api-keys/). `Search API Key` works on all your Algolia application indices and is safe to use in your production frontend code. `Write API Key` is used to create, update and DELETE your indices.
+
+You will also need to add your `SANITY_WEBHOOK_SECRET` from when you set up the webhook.
+
 Finally you will need your Sanity `projectId` and `dataset` name to initiate the Sanity client, in this example they're `SANITY_PROJECT_ID` and `SANITY_DATASET` but you may already have them present if adding to an existing Sanity project.
 
 ```
